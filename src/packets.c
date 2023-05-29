@@ -13,8 +13,6 @@ void sendMsg(char *msg) {
 	msgPacket->msg[strlen(msg)] = '\0';
 	ENetPacket* pack = enet_packet_create(msgPacket, sizeof(msgPacket)+strlen(msg), ENET_PACKET_FLAG_RELIABLE);
 
-	// weird workaround /shrug
-	peer->host-> maximumPacketSize = 1024;
 	enet_peer_send(peer, 0, pack);
 }
 
@@ -30,8 +28,11 @@ void sendExtInfo() {
 	packetExt->packet = *extC;
 
 	ENetPacket* pack = enet_packet_create(packetExt, sizeof(packetExt), ENET_PACKET_FLAG_RELIABLE);
-	peer->host-> maximumPacketSize = 1024;
+
 	enet_peer_send(peer, 0, pack);
+
+	free(packetExt);
+	free(extC);
 }
 
 void sendClientInfo() {
@@ -45,9 +46,11 @@ void sendClientInfo() {
 	char *a = "just testing";
 	strncpy(packetV->os, a, strlen(a));
 
-	ENetPacket* pack = enet_packet_create(packetV, sizeof(packetV)+strlen(a), ENET_PACKET_FLAG_RELIABLE);
-	peer->host-> maximumPacketSize = 1024;
+	ENetPacket* pack = enet_packet_create(packetV, sizeof(packetV)+strlen(a)+1, ENET_PACKET_FLAG_RELIABLE);
+
 	enet_peer_send(peer, 0, pack);
+
+	free(packetV);
 }
 
 void sendHandshakeBack(int fds) {
@@ -56,8 +59,8 @@ void sendHandshakeBack(int fds) {
 	packetHandBack->challenge = fds;
 
 	ENetPacket* pack = enet_packet_create(packetHandBack, sizeof(packetHandBack)+1, ENET_PACKET_FLAG_RELIABLE);
-	peer->host-> maximumPacketSize = 1024;
 	enet_peer_send(peer, 0, pack);
+	free(packetHandBack);
 }
 
 int alreadysent = 0;
@@ -67,6 +70,7 @@ __declspec(naked) void packetHandler() {
 
 	if (!alreadysent) {
 		alreadysent = 1;
+		sendClientInfo();
 		sendExtInfo();
 	}
 
