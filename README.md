@@ -6,5 +6,10 @@ This is a project aiming to add new things to classic Voxlap using DLL injection
 - Support VersionInfo packet
 - Support Extension for messages on screen
 
+### Building
+The unique dependency you need is an old libenet, tested with [1.3.1](https://github.com/lsalzman/enet/releases/tag/v1.3.1)
+
+Then just create the build directory, and build using cmake and make
+
 ## Contributing
 Feel free to fork, star, report issues, open PRs, etc.
