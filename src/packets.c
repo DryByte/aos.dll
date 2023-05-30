@@ -63,16 +63,9 @@ void sendHandshakeBack(int fds) {
 	free(packetHandBack);
 }
 
-int alreadysent = 0;
 __declspec(naked) void packetHandler() {
 	asm volatile("movl %%esi, %0": "=r" (PacketBuffer));
 	asm volatile("movl 40(%%esp), %0": "=r" (peer));
-
-	if (!alreadysent) {
-		alreadysent = 1;
-		sendClientInfo();
-		sendExtInfo();
-	}
 
 	if (PacketBuffer->data[0] != 2)
 		printf("%i\n", PacketBuffer->data[0]);
@@ -100,6 +93,9 @@ __declspec(naked) void packetHandler() {
 			break;
 		case 33:
 			sendClientInfo();
+			break;
+		case 60:
+			sendExtInfo();
 			break;
 	}
 
