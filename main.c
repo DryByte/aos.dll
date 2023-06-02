@@ -5,6 +5,7 @@
 #include <hook.h>
 #include <rendering.h>
 #include <packets.h>
+#include <aos_config.h>
 
 HANDLE clientBase;
 
@@ -38,6 +39,13 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 
 	createHook(clientBase, 0x343e4, packetHandler);
 	createHook(clientBase, 0x334aa, renderingHook);
+
+	loadAoSConfig();
+	struct WindowSize fds = getConfigWindowSize();
+	printf("%i\n", fds.width);
+	printf("%i\n", fds.height);
+	printf("%i\n", getConfigVolume());
+	printf("%.2f\n", getConfigMouseSensitivity());
 
 	return 0;
 }

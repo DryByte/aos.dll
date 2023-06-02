@@ -17,7 +17,4 @@ RECT getWindowRect() {
 	GetClientRect(wind, &winrect);
 
 	return winrect;
-	// TODO: move this stuff to getconfigwindowsize
-	//int* x_res = (int*)(clientBase+0x86204);
-	//int* y_res = (int*)(clientBase+0x86aac);
 }
