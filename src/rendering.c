@@ -98,9 +98,19 @@ void addInfoMessage(char *msg) {
 	strcpy(info_msg, msg);
 }
 
+void test() {
+	RECT b = getWindowRect();
+	printf("%i\n", b.bottom-b.top);
+	printf("%i\n", b.right-b.left);
+}
 __declspec(naked) void renderingHook() {
 	asm volatile("pusha");
 	renderStats();
+
+	printf("-------------\n");
+	test();
+
+	//MessageBoxA(*(HWND*)(clientBase+0x85cfc), "fds?", "Error", MB_OK);
 
 	drawCustomFontText(255, 255, 0xffffff, 2, info_msg);
 

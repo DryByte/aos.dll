@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <window.h>
 
 extern HANDLE clientBase;
 
