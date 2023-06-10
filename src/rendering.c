@@ -1,5 +1,8 @@
 #include <rendering.h>
 #include <stdio.h>
+#include <aos_config.h>
+
+struct customMessage customMessagesBuffer[4];
 
 void setMaxFPS(int fps) {
 	DWORD old_protect;
@@ -22,6 +25,27 @@ void drawText(int x, int y, int color, char* msg) {
 	);
 }
 
+int getCustomFontSize(int fontid, char *msg) {
+	fontid = fontid*4;
+	int len;
+
+	asm volatile(
+		"mov %1, %%edi\n\t"
+		"mov %2, %%esi\n\t"
+
+		"mov $0x85cf0, %%ecx\n\t"
+		"add %3, %%ecx\n\t"
+		"add %%edi, %%ecx\n\t" // font
+		"mov (%%ecx), %%ecx\n\t"
+
+		"mov $0x3c3d0, %%eax\n\t"
+		"add %%edi, %%eax\n\t"
+		"call *%%eax\n\t" // getTextLength
+		"mov %%eax, %0\n\t"
+	:"=r" (len) : "r" (clientBase), "r" (msg),"g" (fontid));
+
+	return len;
+}
 
 void drawCustomFontText(int x, int y, int color, int fontid, char *msg) {
 	fontid = fontid*4;
@@ -35,12 +59,9 @@ void drawCustomFontText(int x, int y, int color, int fontid, char *msg) {
 		"add %%edi, %%ecx\n\t" // font
 		"mov (%%ecx), %%ecx\n\t"
 
-		"mov $0x3c3d0, %%eax\n\t"
-		"add %%edi, %%eax\n\t"
-		"call *%%eax\n\t" // setTextFontBasedOnText
-
 		"mov $0x86aa0, %%eax\n\t" // font pointer
 		"add %%edi, %%eax\n\t"
+		"mov (%%eax), %%eax\n\t"
 		"movl %%ecx, 4(%%eax)\n\t" // set font pointer
 		"mov %3, %%eax\n\t" // color
 		"mov $0x3c460, %%ebx\n\t"
@@ -92,27 +113,66 @@ void renderStats() {
 	drawText(2,2, 0xffffff, fps);
 }
 
-char info_msg[255];
+void addCustomMessage(int type, char *msg) {
+	struct customMessage c_msg;
+	c_msg.timestamp = time(NULL);
+	strncpy(c_msg.msg, msg, 255);
 
-void addInfoMessage(char *msg) {
-	strcpy(info_msg, msg);
+	customMessagesBuffer[type-3] = c_msg;
 }
 
-void test() {
-	RECT b = getWindowRect();
-	printf("%i\n", b.bottom-b.top);
-	printf("%i\n", b.right-b.left);
+void renderCustomMessages() {
+	time_t currentTimestamp = time(NULL);
+	for (int i = 0; i < 4; i++) {
+		struct customMessage c_msg = customMessagesBuffer[i];
+
+		if (currentTimestamp - c_msg.timestamp < 10) {
+			struct WindowSize wind = getConfigWindowSize();
+			int x;
+			int y;
+			int color;
+			int fontid;
+
+			printf("%i\n", i+3);
+			switch(i+3) {
+				case MESSAGE_STATUS:
+					color = 0xffffff;
+					fontid = 2;
+					x = (wind.width - getCustomFontSize(fontid, c_msg.msg)) / 2;
+					y = wind.height*10/100;
+					break;
+				case MESSAGE_NOTICE:
+					color = 0xffffff;
+					fontid = 1;
+					x = (wind.width - getCustomFontSize(fontid, c_msg.msg)) / 2;
+					y = wind.height*60/100;
+
+					break;
+				case MESSAGE_WARNING:
+					color = 0xffee00;
+					fontid = 1;
+					x = (wind.width - getCustomFontSize(fontid, c_msg.msg)) / 2;
+					y = wind.height*63/100;
+
+					break;
+				case MESSAGE_ERROR:
+					color = 0xff0000;
+					fontid = 1;
+					x = (wind.width - getCustomFontSize(fontid, c_msg.msg)) / 2;
+					y = wind.height*66/100;
+
+					break;
+			}
+
+			drawCustomFontText(x, y, color, fontid, c_msg.msg);
+		}
+	}
 }
+
 __declspec(naked) void renderingHook() {
 	asm volatile("pusha");
 	renderStats();
-
-	printf("-------------\n");
-	test();
-
-	//MessageBoxA(*(HWND*)(clientBase+0x85cfc), "fds?", "Error", MB_OK);
-
-	drawCustomFontText(255, 255, 0xffffff, 2, info_msg);
+	renderCustomMessages();
 
 	asm volatile("popa");
 	asm volatile (

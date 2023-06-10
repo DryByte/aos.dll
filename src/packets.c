@@ -78,14 +78,9 @@ __declspec(naked) void packetHandler() {
 
 			printf("%i\n", p->chat_type);
 
-			switch(p->chat_type) {
-				case 3:
-				case 4:
-				case 5:
-				case 6:
-					addInfoMessage(p->msg);
-					break;
-			}
+			if (p->chat_type > 2)
+				addCustomMessage(p->chat_type, p->msg);
+
 			break;
 		case 31:
 			struct packetHandshakeBack* fds = (struct packetHandshakeBack*)PacketBuffer->data;
