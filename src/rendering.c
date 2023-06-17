@@ -1,6 +1,7 @@
 #include <rendering.h>
 #include <stdio.h>
 #include <aos_config.h>
+#include <menu.h>
 
 struct customMessage customMessagesBuffer[4];
 
@@ -173,6 +174,7 @@ __declspec(naked) void renderingHook() {
 	asm volatile("pusha");
 	renderStats();
 	renderCustomMessages();
+	drawMenus();
 
 	asm volatile("popa");
 	asm volatile (

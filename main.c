@@ -6,6 +6,7 @@
 #include <rendering.h>
 #include <packets.h>
 #include <aos_config.h>
+#include <menu.h>
 
 HANDLE clientBase;
 
@@ -39,6 +40,10 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 
 	createHook(clientBase, 0x343e4, packetHandler);
 	createHook(clientBase, 0x334aa, renderingHook);
+
+	struct Menu* mfds = createMenu(150, 20, 0);
+	createText(mfds, 0, 0xffffff, "muito foda");
+	createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
 
 	loadAoSConfig();
 	struct WindowSize fds = getConfigWindowSize();
