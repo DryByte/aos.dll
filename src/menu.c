@@ -34,20 +34,21 @@ void createText(struct Menu* menu, int fontid, int color, char* text) {
 	txtItem->id = id;
 	txtItem->color = color;
 	txtItem->fontId = fontid;
-	strcpy(txtItem->text, text);
+	strncpy(txtItem->text, text, 32);
 
 	menu->items[id] = txtItem;
 	menus[menu->id] = menu;
 }
 
-struct Menu* createMenu(int x, int y, int outline) {
+struct Menu* createMenu(int x, int y, int outline, char* title) {
 	int menuId = getNextAvailableMenuId();
-	struct Menu* menu = malloc(sizeof(struct Menu));	
+	struct Menu* menu = malloc(sizeof(struct Menu)+32);	
 
 	menu->id = menuId;
 	menu->outlineColor = outline;
 	menu->x = x;
 	menu->y = y;
+	strncpy(menu->title, title, 32);
 
 	menus[menuId] = menu;
 	return menu;
@@ -63,8 +64,10 @@ void drawMenus() {
 		struct Menu* menu = (struct Menu*)menus[menuId];
 		int itemsLen = getNextAvailableItemId(menu);
 
-		int largestX = 0;
-		int largestY = 0;
+		int largestX = strlen(menu->title);
+		int largestY = 8;
+
+		drawText(menu->x, menu->y, 0xffffff, menu->title);
 
 		for (int itemId = 0; itemId < itemsLen; itemId++) {
 			void* item = menu->items[itemId];
@@ -84,6 +87,9 @@ void drawMenus() {
 					break;
 			}
 		}
+
+		// separator title | content
+		drawLine(menu->x, menu->y+8, menu->x+largestX, menu->y+8, menu->outlineColor);
 
 		drawLine(menu->x, menu->y, menu->x+largestX, menu->y, menu->outlineColor);
 		drawLine(menu->x, menu->y+largestY, menu->x+largestX, menu->y+largestY, menu->outlineColor);

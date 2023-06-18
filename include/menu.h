@@ -24,10 +24,11 @@ struct Menu {
 	int x, y;
 	int outlineColor;
 	int id;
+	char title[32];
 	void* items[MAX_MENU_ITEMS];
 };
 
 int getNextAvailableMenuId();
 void createText(struct Menu* menu, int fontid, int color, char* text);
-struct Menu* createMenu(int x, int y, int outline);
+struct Menu* createMenu(int x, int y, int outline, char* title);
 void drawMenus();
