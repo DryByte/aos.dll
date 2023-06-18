@@ -2,3 +2,4 @@
 extern HANDLE clientBase;
 
 RECT getWindowRect();
+void aosToggleCursor();

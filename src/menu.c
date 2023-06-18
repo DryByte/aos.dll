@@ -1,6 +1,8 @@
 #include <menu.h>
 #include <stdio.h>
 #include <rendering.h>
+#include <windows.h>
+#include <window.h>
 
 #define MAX(x,y) (x>y) ? x : y
 
@@ -48,10 +50,31 @@ struct Menu* createMenu(int x, int y, int outline, char* title) {
 	menu->outlineColor = outline;
 	menu->x = x;
 	menu->y = y;
+	menu->hidden = 1;
 	strncpy(menu->title, title, 32);
 
 	menus[menuId] = menu;
 	return menu;
+}
+
+void showAllMenus() {
+	aosToggleCursor();
+	int menusLen = getNextAvailableMenuId();
+
+	for (int menuId = 0; menuId < menusLen; menuId++) {
+		struct Menu* menu = (struct Menu*)menus[menuId];
+		menu->hidden = 0;
+	}
+}
+
+void hideAllMenus() {
+	aosToggleCursor();
+	int menusLen = getNextAvailableMenuId();
+
+	for (int menuId = 0; menuId < menusLen; menuId++) {
+		struct Menu* menu = (struct Menu*)menus[menuId];
+		menu->hidden = 1;
+	}
 }
 
 void renderMenuText(struct Menu* menu, struct ItemText* item, int y) {
@@ -62,6 +85,9 @@ void drawMenus() {
 	int menusLen = getNextAvailableMenuId();
 	for (int menuId = 0; menuId < menusLen; menuId++) {
 		struct Menu* menu = (struct Menu*)menus[menuId];
+		if (menu->hidden)
+			continue;
+
 		int itemsLen = getNextAvailableItemId(menu);
 
 		int largestX = strlen(menu->title);

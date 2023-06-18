@@ -52,6 +52,21 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	printf("%i\n", getConfigVolume());
 	printf("%.2f\n", getConfigMouseSensitivity());
 
+	int isMenuHidden = 0;
+	while (1) {
+		if (GetAsyncKeyState(VK_MENU)) {
+			if (isMenuHidden) {
+				isMenuHidden = 0;
+				showAllMenus();
+			} else {
+				isMenuHidden = 1;
+				hideAllMenus();
+			}
+		}
+
+		Sleep(250);
+	}
+
 	return 0;
 }
 

@@ -21,6 +21,7 @@ struct ItemText {
 };
 
 struct Menu {
+	int hidden;
 	int x, y;
 	int outlineColor;
 	int id;
@@ -28,6 +29,8 @@ struct Menu {
 	void* items[MAX_MENU_ITEMS];
 };
 
+void showAllMenus();
+void hideAllMenus();
 int getNextAvailableMenuId();
 void createText(struct Menu* menu, int fontid, int color, char* text);
 struct Menu* createMenu(int x, int y, int outline, char* title);
