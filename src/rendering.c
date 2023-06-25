@@ -100,6 +100,22 @@ void drawLine(int x1, int y1, int x2, int y2, int color) {
 	:: "r" (clientBase), "g" (x1), "g" (y1), "g" (x2), "g" (y2), "g" (color));
 }
 
+// colors in argb
+void drawProgressBar(float progress, int progressColor, int backgroundColor) {
+	asm volatile(
+		"mov %0, %%eax\n\t"
+		"add $0x2ba20, %%eax\n\t"
+		"push %2\n\t"
+		"push %3\n\t"
+		"push %1\n\t"//progress
+		"call *%%eax\n\t"
+		// clean our mess
+		"pop %%eax\n\t"
+		"pop %%eax\n\t"
+		"pop %%eax\n\t"
+		:: "r" (clientBase), "g"(progress), "g" (progressColor), "g" (backgroundColor));
+}
+
 void renderStats() {
 	char fps[20];
 	int maxFps = (int)(1 / *(float*)(clientBase+0x48e00))+1;
@@ -175,6 +191,7 @@ __declspec(naked) void renderingHook() {
 	renderStats();
 	renderCustomMessages();
 	drawMenus();
+	drawProgressBar(0.8, 0xff454545, 0xffffff33);
 
 	asm volatile("popa");
 	asm volatile (
