@@ -3,6 +3,7 @@
 #include <rendering.h>
 #include <windows.h>
 #include <window.h>
+#include <voxlap.h>
 
 #define MAX(x,y) (x>y) ? x : y
 
@@ -115,12 +116,12 @@ void drawMenus() {
 		}
 
 		// separator title | content
-		drawLine(menu->x, menu->y+8, menu->x+largestX, menu->y+8, menu->outlineColor);
+		drawline2d(menu->x, menu->y+8, menu->x+largestX, menu->y+8, menu->outlineColor);
 
-		drawLine(menu->x, menu->y, menu->x+largestX, menu->y, menu->outlineColor);
-		drawLine(menu->x, menu->y+largestY, menu->x+largestX, menu->y+largestY, menu->outlineColor);
+		drawline2d(menu->x, menu->y, menu->x+largestX, menu->y, menu->outlineColor);
+		drawline2d(menu->x, menu->y+largestY, menu->x+largestX, menu->y+largestY, menu->outlineColor);
 
-		drawLine(menu->x, menu->y, menu->x, menu->y+largestY, menu->outlineColor);
-		drawLine(menu->x+largestX, menu->y, menu->x+largestX, menu->y+largestY, menu->outlineColor);
+		drawline2d(menu->x, menu->y, menu->x, menu->y+largestY, menu->outlineColor);
+		drawline2d(menu->x+largestX, menu->y, menu->x+largestX, menu->y+largestY, menu->outlineColor);
 	}
 }

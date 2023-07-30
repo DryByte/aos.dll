@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <aos_config.h>
 #include <menu.h>
+#include <voxlap.h>
 
 struct customMessage customMessagesBuffer[4];
 
@@ -82,20 +83,6 @@ void drawCustomFontText(int x, int y, int color, int fontid, char *msg) {
 	:: "r" (clientBase), "g" (x), "g" (y), "g" (color), "g" (fontid), "r" (msg));
 }
 
-void drawLine(int x1, int y1, int x2, int y2, int color) {
-	asm volatile(
-		"mov %0, %%edi\n\t"
-		"push %5\n\t"
-		"push %4\n\t" 
-		"push %3\n\t"
-		"push %1\n\t"
-		"mov %2, %%eax\n\t"
-		"add $0x1ef80, %%edi\n\t"
-		"call *%%edi\n\t"
-		"add $0x10, %%esp"
-	:: "r" (clientBase), "g" (x1), "g" (y1), "g" (x2), "g" (y2), "g" (color));
-}
-
 // colors in argb
 void drawProgressBar(float progress, int progressColor, int backgroundColor) {
 	asm volatile(
@@ -109,51 +96,15 @@ void drawProgressBar(float progress, int progressColor, int backgroundColor) {
 		:: "r" (clientBase), "g"(progress), "g" (progressColor), "g" (backgroundColor));
 }
 
-//(tf,tp,tx,ty,tcx,tcy): Tile source, (tcx&tcy) is texel (<<16) at (sx,sy)
-//(sx,sy,xz,yz) screen coordinates and x&y zoom, all (<<16)
-//(black,white): black & white shade scale (ARGB format)
-//   Note: if alphas of black&white are same, then alpha channel ignored
-void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, long sy, long xz, long yz, long black) {
-	asm volatile(
-		"push %11\n\t" //black
-		"push %10\n\t" // zoom
-		"push %9\n\t" // zoom
-
-		"movl (0x486aac), %%edi\n\t" // sy
-		"sub %8, %%edi\n\t"
-		"shl $0x10, %%edi\n\t"
-		"push %%edi\n\t"
-		"movl (0x486204), %%esi\n\t" // sx
-		"sub %7, %%esi\n\t"
-		"shl $0x10, %%esi\n\t"
-
-		"push %6\n\t" // tcy
-		"push %5\n\t" // tcx
-
-		"mov %4, %%ecx\n\t" // ty
-		"push %3\n\t" // tx
-		
-		"push %2\n\t" // tp
-
-		"push %1\n\t" // buffer
-		"mov %0, %%edi\n\t"
-		"mov %%esi, %%eax\n\t"
-
-		"add $0x22390, %%edi\n\t"
-		"call *%%edi\n\t"
-		"add $0x24, %%esp\n\t"
-	:: "r" (clientBase), "g" (tf), "g" (tp), "g" (tx), "g" (ty), "g" (tcx), "g" (tcy), "g" (sx), "g" (sy), "g" (xz), "g" (yz), "g" (black));
-}
-
 void renderStats() {
 	char fps[20];
 	int maxFps = (int)(1 / *(float*)(clientBase+0x48e00))+1;
 	int currentFps = (int)(1 / *(float*)(clientBase+0x13cf83c))+1;
 
-	drawLine(1, 1, 10*8, 1, 0xff0000);
-	drawLine(1, 10, 10*8, 10, 0xff0000);
-	drawLine(1, 1, 1, 10, 0xff0000);
-	drawLine(10*8, 1, 10*8, 10, 0xff0000);
+	drawline2d(1, 1, 10*8, 1, 0xff0000);
+	drawline2d(1, 10, 10*8, 10, 0xff0000);
+	drawline2d(1, 1, 1, 10, 0xff0000);
+	drawline2d(10*8, 1, 10*8, 10, 0xff0000);
 
 	sprintf(fps, "FPS: %i/%i", currentFps, maxFps);
 	drawText(2,2, 0xffffff, fps);
