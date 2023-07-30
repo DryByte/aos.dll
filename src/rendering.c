@@ -116,6 +116,42 @@ void drawProgressBar(float progress, int progressColor, int backgroundColor) {
 		:: "r" (clientBase), "g"(progress), "g" (progressColor), "g" (backgroundColor));
 }
 
+//(tf,tp,tx,ty,tcx,tcy): Tile source, (tcx&tcy) is texel (<<16) at (sx,sy)
+//(sx,sy,xz,yz) screen coordinates and x&y zoom, all (<<16)
+//(black,white): black & white shade scale (ARGB format)
+//   Note: if alphas of black&white are same, then alpha channel ignored
+void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, long sy, long xz, long yz, long black) {
+	asm volatile(
+		"push %11\n\t" //black
+		"push %10\n\t" // zoom
+		"push %9\n\t" // zoom
+
+		"movl (0x486aac), %%edi\n\t" // sy
+		"sub %8, %%edi\n\t"
+		"shl $0x10, %%edi\n\t"
+		"push %%edi\n\t"
+		"movl (0x486204), %%esi\n\t" // sx
+		"sub %7, %%esi\n\t"
+		"shl $0x10, %%esi\n\t"
+
+		"push %6\n\t" // tcy
+		"push %5\n\t" // tcx
+
+		"mov %4, %%ecx\n\t" // ty
+		"push %3\n\t" // tx
+		
+		"push %2\n\t" // tp
+
+		"push %1\n\t" // buffer
+		"mov %0, %%edi\n\t"
+		"mov %%esi, %%eax\n\t"
+
+		"add $0x22390, %%edi\n\t"
+		"call *%%edi\n\t"
+		"add $0x24, %%esp\n\t"
+	:: "r" (clientBase), "g" (tf), "g" (tp), "g" (tx), "g" (ty), "g" (tcx), "g" (tcy), "g" (sx), "g" (sy), "g" (xz), "g" (yz), "g" (black));
+}
+
 void renderStats() {
 	char fps[20];
 	int maxFps = (int)(1 / *(float*)(clientBase+0x48e00))+1;
@@ -186,18 +222,31 @@ void renderCustomMessages() {
 	}
 }
 
+long colors[] = {
+		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
+		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
+		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
+		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
+		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
+		0xffff00ff,0xffff00ff,0xffff00ff, 0xffff00ff, 0xffff00ff, 0xffff00ff,0xffff00ff,0xffff00ff,
+		0xffff00ff,0xffff00ff,0xffff00ff, 0x00ffffff, 0x00ffffff, 0xffff00ff,0xffff00ff,0xffff00ff,
+		0xffff00ff,0xffff00ff,0xffff00ff, 0x00ffffff, 0x00ffffff, 0xffff00ff,0xffff00ff,0xffff00ff,
+	};
 __declspec(naked) void renderingHook() {
 	asm volatile("pusha");
+	drawtile(colors, 4*8, 8, 8, 0x0, 0x0, 0x80, 0x80, 0x80000, 0x80000, -1);
+
 	renderStats();
 	renderCustomMessages();
 	drawMenus();
-	drawProgressBar(0.8, 0xff454545, 0xffffff33);
+	//drawProgressBar(0.8, 0xff454545, 0xffffff33);
 
 	asm volatile("popa");
 	asm volatile (
 		"add $0x85cd0, %%eax\n\t"
 		"movl (%%eax), %%ecx\n\t"
 		"movl $0x0, %%ebp\n\t" // this not sounds right, but its working, so its right
+		"movl $0x18FFC58, 8(%%esp)\n\t" // is this fine to do? At the end of renderUI function it will try to pop this, but drawtile fucked up everything by moving stuff, what reseted the stack
 		"jmp *%0"
 		:: "r" (clientBase+0x334b0), "r" (clientBase) //probably we can change it later, im tired rn
 	);
