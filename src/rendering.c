@@ -92,11 +92,7 @@ void drawLine(int x1, int y1, int x2, int y2, int color) {
 		"mov %2, %%eax\n\t"
 		"add $0x1ef80, %%edi\n\t"
 		"call *%%edi\n\t"
-		// weird stack isnt getting clear in the function?
-		"pop %%esi\n\t"
-		"pop %%esi\n\t"
-		"pop %%esi\n\t"
-		"pop %%esi\n\t"
+		"add $0x10, %%esp"
 	:: "r" (clientBase), "g" (x1), "g" (y1), "g" (x2), "g" (y2), "g" (color));
 }
 
@@ -109,10 +105,7 @@ void drawProgressBar(float progress, int progressColor, int backgroundColor) {
 		"push %3\n\t"
 		"push %1\n\t"//progress
 		"call *%%eax\n\t"
-		// clean our mess
-		"pop %%eax\n\t"
-		"pop %%eax\n\t"
-		"pop %%eax\n\t"
+		"add $0xc, %%esp"
 		:: "r" (clientBase), "g"(progress), "g" (progressColor), "g" (backgroundColor));
 }
 
@@ -239,7 +232,7 @@ __declspec(naked) void renderingHook() {
 	renderStats();
 	renderCustomMessages();
 	drawMenus();
-	//drawProgressBar(0.8, 0xff454545, 0xffffff33);
+	drawProgressBar(0.8, 0xff454545, 0xffffff33);
 
 	asm volatile("popa");
 	asm volatile (
