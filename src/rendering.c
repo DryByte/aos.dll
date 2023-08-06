@@ -170,14 +170,14 @@ void renderChatshadow() {
 	char *chatBuffer = (char*)(clientBase+0x840c0);
 	float currentTS = *(float*)(clientBase+0x13cf8d4);
 
-	int yPos = 95;
+	int yPos = 505;
 	int ySize = 1;
 	int xSize = 1;
 
 	int hasChatLog = *chatBuffer;
 	int isChatOpen = *(int*)(clientBase+0x84660);
 	if (isChatOpen) {
-		yPos += 20;
+		yPos -= 20;
 		ySize += 20;
 
 		char msgLen = strlen((char*)(clientBase+0x12b16e0));
@@ -202,7 +202,7 @@ void renderChatshadow() {
 			}
 
 			xSize = xSize >= strlen(chatBuffer) ? xSize : strlen(chatBuffer)+1;
-			ySize+=10;
+			ySize+=11;
 
 			chatBuffer += 0x74;
 		}
@@ -210,7 +210,7 @@ void renderChatshadow() {
 
 	if (isChatOpen || hasChatLog) {
 		long color[] = {0xe0000000};
-		drawtile(color, 1, 1, 1, 0x0, 0x0, 790, yPos, 0x60000*xSize, 0x11000*ySize, -1);
+		drawtile(color, 1, 1, 1, 0x0, 0x0, 10, yPos, 6*xSize, ySize, -1);
 	}
 }
 

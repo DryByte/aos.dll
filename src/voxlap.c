@@ -21,15 +21,15 @@ void drawline2d(int x1, int y1, int x2, int y2, int color) {
 void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, long sy, long xz, long yz, long black) {
 	asm volatile(
 		"push %11\n\t" //black
+		"shl $0x10, %10\n\t"
 		"push %10\n\t" // zoom
+		"shl $0x10, %9\n\t"
 		"push %9\n\t" // zoom
 
-		"movl (0x486aac), %%edi\n\t" // sy
-		"sub %8, %%edi\n\t"
+		"mov %8, %%edi\n\t" //sy
 		"shl $0x10, %%edi\n\t"
-		"push %%edi\n\t"
-		"movl (0x486204), %%esi\n\t" // sx
-		"sub %7, %%esi\n\t"
+		"push %%edi\n\t" 
+		"mov %7, %%esi\n\t" // sx
 		"shl $0x10, %%esi\n\t"
 
 		"push %6\n\t" // tcy
