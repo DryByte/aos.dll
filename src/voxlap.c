@@ -49,3 +49,12 @@ void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, l
 		"add $0x24, %%esp\n\t"
 	:: "r" (clientBase), "g" (tf), "g" (tp), "g" (tx), "g" (ty), "g" (tcx), "g" (tcy), "g" (sx), "g" (sy), "g" (xz), "g" (yz), "g" (black));
 }
+
+void playsound2d(char *filnam, long volperc) {
+	asm volatile(
+		"push %1\n\t"
+		"mov %2, %%edi\n\t"
+		"add $0x19c30, %0\n\t"
+		"call *%0"
+	:: "r" (clientBase), "r" (filnam), "r" (volperc));
+}
