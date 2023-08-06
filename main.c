@@ -39,7 +39,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	*lengthLimit = 1;
 
 	createHook(clientBase, 0x343e4, packetHandler);
-	createHook(clientBase, 0x334aa, renderingHook);
+	createHook(clientBase, 0x32f00, renderingHook);
 
 	struct Menu* mfds = createMenu(150, 20, 0, "Just a test");
 	createText(mfds, 0, 0xffffff, "muito foda");

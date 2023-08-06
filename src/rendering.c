@@ -178,20 +178,21 @@ long colors[] = {
 	};
 __declspec(naked) void renderingHook() {
 	asm volatile("pusha");
-	drawtile(colors, 4*8, 8, 8, 0x0, 0x0, 0x80, 0x80, 0x80000, 0x80000, -1);
 
 	renderStats();
 	renderCustomMessages();
 	drawMenus();
-	drawProgressBar(0.8, 0xff454545, 0xffffff33);
+	//drawProgressBar(0.8, 0xff454545, 0xffffff33);
 
 	asm volatile("popa");
 	asm volatile (
-		"add $0x85cd0, %%eax\n\t"
-		"movl (%%eax), %%ecx\n\t"
-		"movl $0x0, %%ebp\n\t" // this not sounds right, but its working, so its right
-		"movl $0x18FFC58, 8(%%esp)\n\t" // is this fine to do? At the end of renderUI function it will try to pop this, but drawtile fucked up everything by moving stuff, what reseted the stack
-		"jmp *%0"
-		:: "r" (clientBase+0x334b0), "r" (clientBase) //probably we can change it later, im tired rn
+		"mov %0, %%esi\n\t"
+		"mov %%esi, %%eax\n\t"
+		"add $0x13b1e04, %%eax\n\t"
+		"inc %%eax\n\t"
+
+		"add $0x32f05, %%esi\n\t"
+		"jmp *%%esi"
+		:: "r" (clientBase) //probably we can change it later, im tired rn
 	);
 }
