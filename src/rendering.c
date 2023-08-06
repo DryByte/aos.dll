@@ -166,18 +166,58 @@ void renderCustomMessages() {
 	}
 }
 
-long colors[] = {
-		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
-		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
-		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
-		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
-		0x00ffffff,0x00ffffff,0x00ffffff, 0xffff00ff, 0xffff00ff, 0x00ffffff,0x00ffffff,0x00ffffff,
-		0xffff00ff,0xffff00ff,0xffff00ff, 0xffff00ff, 0xffff00ff, 0xffff00ff,0xffff00ff,0xffff00ff,
-		0xffff00ff,0xffff00ff,0xffff00ff, 0x00ffffff, 0x00ffffff, 0xffff00ff,0xffff00ff,0xffff00ff,
-		0xffff00ff,0xffff00ff,0xffff00ff, 0x00ffffff, 0x00ffffff, 0xffff00ff,0xffff00ff,0xffff00ff,
-	};
+void renderChatshadow() {
+	char *chatBuffer = (char*)(clientBase+0x840c0);
+	float currentTS = *(float*)(clientBase+0x13cf8d4);
+
+	int yPos = 95;
+	int ySize = 1;
+	int xSize = 1;
+
+	int hasChatLog = *chatBuffer;
+	int isChatOpen = *(int*)(clientBase+0x84660);
+	if (isChatOpen) {
+		yPos += 20;
+		ySize += 20;
+
+		char msgLen = strlen((char*)(clientBase+0x12b16e0));
+		char globalLen = strlen("global: ");
+
+		xSize = msgLen > globalLen ? msgLen : globalLen;
+	}
+
+
+	if (hasChatLog) {
+		while (chatBuffer < clientBase+0x840c0+0x74*6) {
+			if (!*chatBuffer)
+				break;
+
+			if (chatBuffer != clientBase+0x840c0) {
+				float *msgTimestamp = (float *)chatBuffer;
+
+				if (currentTS >= *msgTimestamp) {
+					break;
+				}
+				chatBuffer += 0x4;
+			}
+
+			xSize = xSize >= strlen(chatBuffer) ? xSize : strlen(chatBuffer)+1;
+			ySize+=10;
+
+			chatBuffer += 0x74;
+		}
+	}
+
+	if (isChatOpen || hasChatLog) {
+		long color[] = {0xe0000000};
+		drawtile(color, 1, 1, 1, 0x0, 0x0, 790, yPos, 0x60000*xSize, 0x11000*ySize, -1);
+	}
+}
+
 __declspec(naked) void renderingHook() {
 	asm volatile("pusha");
+
+	renderChatshadow();
 
 	renderStats();
 	renderCustomMessages();
