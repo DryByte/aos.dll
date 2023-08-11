@@ -7,7 +7,7 @@ This is a project aiming to add new things to classic Voxlap using DLL injection
 - Support Extension for messages on screen
 
 ### Building
-The unique dependency you need is an old libenet, tested with [1.3.1](https://github.com/lsalzman/enet/releases/tag/v1.3.1)
+Get enet [1.3.1](https://github.com/lsalzman/enet/releases/tag/v1.3.1)'s include folder and paste it on include directory.
 
 Then just create the build directory, and build using cmake and make
 

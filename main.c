@@ -20,11 +20,6 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 		return 0;
 	}
 
-	if (enet_initialize())
-	{
-		printf("Can't init enet\n");
-	}
-
 	printf("\n----------------\n");
 	printf("DLL Injected :D\n");
 	printf("----------------\n");

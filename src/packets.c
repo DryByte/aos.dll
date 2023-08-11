@@ -3,6 +3,24 @@
 ENetPacket* PacketBuffer;
 ENetPeer* peer;
 
+void sendPacket(void* packet, size_t size) {
+	asm volatile(
+		"mov %0, %%esi\n\t"
+		"push $0x1\n\t"
+		"push %2\n\t"
+		"push %1\n\t"
+		"mov %%esi, %%eax\n\t"
+		"add $0x3e5e0, %%eax\n\t"
+		"call *%%eax\n\t"
+		"add $0xc, %%esp\n\t"
+
+		"push %%eax\n\t"
+		"add $0x38690, %%esi\n\t"
+		"call *%%esi\n\t"
+		"add $0x4, %%esp"
+	:: "r" (clientBase), "r" (packet), "g" (size));
+}
+
 void sendMsg(char *msg) {
 	struct packetMsg* msgPacket = malloc(sizeof(struct packetMsg));
 	msgPacket->packetId = 17;
@@ -11,9 +29,8 @@ void sendMsg(char *msg) {
 
 	strncpy(msgPacket->msg, msg, strlen(msg));
 	msgPacket->msg[strlen(msg)] = '\0';
-	ENetPacket* pack = enet_packet_create(msgPacket, sizeof(msgPacket)+strlen(msg), ENET_PACKET_FLAG_RELIABLE);
 
-	enet_peer_send(peer, 0, pack);
+	sendPacket(msgPacket, sizeof(msgPacket)+strlen(msg));
 }
 
 void sendExtInfo() {
@@ -27,9 +44,7 @@ void sendExtInfo() {
 
 	packetExt->packet = *extC;
 
-	ENetPacket* pack = enet_packet_create(packetExt, sizeof(packetExt), ENET_PACKET_FLAG_RELIABLE);
-
-	enet_peer_send(peer, 0, pack);
+	sendPacket(packetExt, sizeof(packetExt));
 
 	free(packetExt);
 	free(extC);
@@ -46,9 +61,7 @@ void sendClientInfo() {
 	char *a = "just testing";
 	strncpy(packetV->os, a, strlen(a));
 
-	ENetPacket* pack = enet_packet_create(packetV, sizeof(packetV)+strlen(a)+1, ENET_PACKET_FLAG_RELIABLE);
-
-	enet_peer_send(peer, 0, pack);
+	sendPacket(packetV, sizeof(packetV)+strlen(a)+1);
 
 	free(packetV);
 }
@@ -58,8 +71,7 @@ void sendHandshakeBack(int fds) {
 	packetHandBack->packetId = 32;
 	packetHandBack->challenge = fds;
 
-	ENetPacket* pack = enet_packet_create(packetHandBack, sizeof(packetHandBack)+1, ENET_PACKET_FLAG_RELIABLE);
-	enet_peer_send(peer, 0, pack);
+	sendPacket(packetHandBack, sizeof(packetHandBack)+1);
 	free(packetHandBack);
 }
 

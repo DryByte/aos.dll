@@ -11,4 +11,3 @@ file(GLOB srcFiles "./src/*.c")
 add_library(aos SHARED ${srcFiles} main.c)
 
 target_include_directories(aos PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(aos ${CMAKE_CURRENT_SOURCE_DIR}/libs/libenet.a ws2_32 winmm)
