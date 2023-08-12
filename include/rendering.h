@@ -22,5 +22,6 @@ void drawText(int x, int y, int color, char* msg);
 void drawCustomFontText(int x, int y, int color, int fontid, char *msg);
 void drawProgressBar(float progress, int progressColor, int backgroundColor);
 void addCustomMessage(int type, char* msg);
-void renderingHook(void);
+void renderingHookBI(void);
+void renderingHookAI(void);
 void setMaxFPS(int fps);

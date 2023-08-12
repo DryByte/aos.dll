@@ -214,14 +214,13 @@ void renderChatshadow() {
 	}
 }
 
-__declspec(naked) void renderingHook() {
+// hook before interface render
+__declspec(naked) void renderingHookBI() {
 	asm volatile("pusha");
 
 	renderChatshadow();
 
 	renderStats();
-	renderCustomMessages();
-	drawMenus();
 	//drawProgressBar(0.8, 0xff454545, 0xffffff33);
 
 	asm volatile("popa");
@@ -236,4 +235,23 @@ __declspec(naked) void renderingHook() {
 		"jmp *%%esi"
 		:: "r" (clientBase) //probably we can change it later, im tired rn
 	);
+
+	
+}
+
+// hook after interface render
+// to render customFontText, you should do this after the interface render
+__declspec(naked) void renderingHookAI() {
+	asm volatile("pusha");
+
+	renderCustomMessages();
+	drawMenus();
+
+	asm volatile("popa");
+	asm volatile(
+		"mov %0, %%ecx\n\t"
+		"movl 0x85cd0(%%ecx), %%ecx\n\t"
+		"add $0x334b0, %0\n\t"
+		"jmp *%0"
+	:: "r" (clientBase));
 }
