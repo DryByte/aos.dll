@@ -229,6 +229,7 @@ __declspec(naked) void renderingHook() {
 		"mov %0, %%esi\n\t"
 		"mov %%esi, %%eax\n\t"
 		"add $0x13b1e04, %%eax\n\t"
+		"movl (%%eax), %%eax\n\t"
 		"inc %%eax\n\t"
 
 		"add $0x32f05, %%esi\n\t"
