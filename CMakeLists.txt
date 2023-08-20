@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.25.3 FATAL_ERROR)
 
 set(CMAKE_SYSTEM_NAME "Windows")
 set(CMAKE_C_COMPILER "/usr/bin/i686-w64-mingw32-gcc")
