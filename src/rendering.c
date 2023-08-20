@@ -170,7 +170,8 @@ void renderChatshadow() {
 	char *chatBuffer = (char*)(clientBase+0x840c0);
 	float currentTS = *(float*)(clientBase+0x13cf8d4);
 
-	int yPos = 505;
+	struct WindowSize wins = getConfigWindowSize();
+	int yPos = wins.height-95;
 	int ySize = 1;
 	int xSize = 1;
 
