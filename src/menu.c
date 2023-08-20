@@ -51,6 +51,8 @@ struct Menu* createMenu(int x, int y, int outline, char* title) {
 	menu->outlineColor = outline;
 	menu->x = x;
 	menu->y = y;
+	menu->xSize = 1;
+	menu->ySize = 1;
 	menu->hidden = 1;
 	strncpy(menu->title, title, 32);
 
@@ -91,8 +93,16 @@ void drawMenus() {
 
 		int itemsLen = getNextAvailableItemId(menu);
 
-		int largestX = strlen(menu->title);
+		int largestX = MAX(menu->xSize, strlen(menu->title));
 		int largestY = 8;
+
+		// title background
+		long color[] = {0xe0000000};
+		drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y, menu->xSize, largestY, -1);
+
+		// content background
+		color[0] = 0xc0000000;
+		drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y, menu->xSize, menu->ySize, -1);
 
 		drawText(menu->x, menu->y, 0xffffff, menu->title);
 
@@ -114,6 +124,10 @@ void drawMenus() {
 					break;
 			}
 		}
+
+		largestY = MAX(menu->ySize, largestY);
+		menu->xSize = largestX;
+		menu->ySize = largestY;
 
 		// separator title | content
 		drawline2d(menu->x, menu->y+8, menu->x+largestX, menu->y+8, menu->outlineColor);

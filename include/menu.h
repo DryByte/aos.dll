@@ -21,10 +21,13 @@ struct ItemText {
 };
 
 struct Menu {
-	int hidden;
-	int x, y;
-	int outlineColor;
 	int id;
+	int x, y;
+	int xSize, ySize;
+	int hidden;
+	int outlineColor;
+	int backgroundColor;
+
 	char title[32];
 	void* items[MAX_MENU_ITEMS];
 };
