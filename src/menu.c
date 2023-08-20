@@ -32,7 +32,7 @@ int getNextAvailableItemId(struct Menu* menu) {
 void createText(struct Menu* menu, int fontid, int color, char* text) {
 	int id = getNextAvailableItemId(menu);
 
-	struct ItemText* txtItem = malloc(sizeof(txtItem)+32);
+	struct ItemText* txtItem = malloc(sizeof(struct ItemText)+32);
 	txtItem->type = 0;
 	txtItem->id = id;
 	txtItem->color = color;
