@@ -3,6 +3,8 @@
 ENetPacket* PacketBuffer;
 ENetPeer* peer;
 
+extern struct ItemMultitext* LoggerMultitext;
+
 void sendPacket(void* packet, size_t size) {
 	asm volatile(
 		"mov %0, %%esi\n\t"
@@ -90,6 +92,7 @@ __declspec(naked) void packetHandler() {
 
 			printf("%i\n", p->chat_type);
 
+			addNewText(LoggerMultitext, p->msg);
 			if (p->chat_type > 2)
 				addCustomMessage(p->chat_type, p->msg);
 

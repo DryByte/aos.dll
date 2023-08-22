@@ -12,7 +12,7 @@ struct Menu* menus[MAX_MENU_ENTRIES];
 int getNextAvailableMenuId() {
 	int i = 0;
 	for (; i <= MAX_MENU_ENTRIES; i++) {
-		if (*(menus+i*4) == NULL)
+		if (menus[i] == NULL)
 			break;
 	}
 
@@ -41,6 +41,43 @@ void createText(struct Menu* menu, int fontid, int color, char* text) {
 
 	menu->items[id] = txtItem;
 	menus[menu->id] = menu;
+}
+
+void addNewText(struct ItemMultitext* multitext, char* text) {
+	int strLen = strlen(text);
+	struct MultitextNode* node = malloc(sizeof(struct MultitextNode) + (strLen < 128 ? strLen : 128));
+
+	node->next = 0;
+	strncpy(node->text, text, 128);
+
+	if (multitext->lastNode == 0) {
+		node->previous = 0;
+
+		multitext->firstNode = node;
+		multitext->lastNode = node;
+	} else {
+		node->previous = multitext->lastNode;
+
+		multitext->lastNode->next = node;
+		multitext->lastNode = node;
+	}
+}
+
+struct ItemMultitext* createMultitext(struct Menu* menu, int color) {
+	int id = getNextAvailableItemId(menu);
+
+	struct ItemMultitext* multitextItem = malloc(sizeof(struct ItemMultitext));
+	multitextItem->type = 2;
+	multitextItem->id = id;
+	multitextItem->color = color;
+	multitextItem->currentPos = 0;
+	multitextItem->firstNode = 0;
+	multitextItem->lastNode = 0;
+
+	menu->items[id] = multitextItem;
+	menus[menu->id] = menu;
+
+	return multitextItem;
 }
 
 struct Menu* createMenu(int x, int y, int outline, char* title) {
@@ -93,7 +130,7 @@ void drawMenus() {
 
 		int itemsLen = getNextAvailableItemId(menu);
 
-		int largestX = MAX(menu->xSize, strlen(menu->title));
+		int largestX = MAX(menu->xSize, strlen(menu->title)*8);
 		int largestY = 8;
 
 		// title background
@@ -122,6 +159,19 @@ void drawMenus() {
 				case BUTTON_ITEM:
 					printf("nop\n");
 					break;
+				case MULTITEXT_ITEM:
+					struct ItemMultitext* multitext = (struct ItemMultitext*)item;
+					struct MultitextNode* lastNode = multitext->lastNode;
+					for (int i=0; i<5; i++) {
+						drawText(menu->x, menu->y+largestY, multitext->color, lastNode->text);
+						largestX = MAX(largestX, strlen(lastNode->text)*8);
+						largestY += 8;
+
+						if (lastNode->previous == 0)
+							break;
+
+						lastNode = lastNode->previous;
+					}
 			}
 		}
 

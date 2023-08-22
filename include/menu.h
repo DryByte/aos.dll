@@ -5,7 +5,8 @@
 
 enum itemTypes {
 	TEXT_ITEM,
-	BUTTON_ITEM
+	BUTTON_ITEM,
+	MULTITEXT_ITEM
 };
 
 struct Item {
@@ -18,6 +19,22 @@ struct ItemText {
 	int color;
 	int fontId;
 	char text[32];
+};
+
+struct MultitextNode {
+	char text[128];
+	void* next;
+	void* previous;
+};
+
+struct ItemMultitext {
+	uint8_t type;
+	int id;
+	int color;
+
+	int currentPos;
+	struct MultitextNode* firstNode;
+	struct MultitextNode* lastNode;
 };
 
 struct Menu {
@@ -36,5 +53,7 @@ void showAllMenus();
 void hideAllMenus();
 int getNextAvailableMenuId();
 void createText(struct Menu* menu, int fontid, int color, char* text);
+void addNewText(struct ItemMultitext* multitext, char* text);
+struct ItemMultitext* createMultitext(struct Menu* menu, int color);
 struct Menu* createMenu(int x, int y, int outline, char* title);
 void drawMenus();

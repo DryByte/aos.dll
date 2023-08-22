@@ -9,6 +9,7 @@
 #include <menu.h>
 
 HANDLE clientBase;
+struct ItemMultitext* LoggerMultitext;
 
 DWORD WINAPI LoopFunction(LPVOID lpParam)
 {
@@ -40,6 +41,12 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	struct Menu* mfds = createMenu(150, 20, 0, "Just a test");
 	createText(mfds, 0, 0xffffff, "muito foda");
 	createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
+
+	struct Menu* LoggerMenu = createMenu(300, 200, 0, "Logger");
+	LoggerMultitext = createMultitext(LoggerMenu, 0xffffff);
+	addNewText(LoggerMultitext, "tf is going on? is it working");
+	addNewText(LoggerMultitext, "another item kekw");
+	addNewText(LoggerMultitext, "one more");
 
 	loadAoSConfig();
 	struct WindowSize fds = getConfigWindowSize();
