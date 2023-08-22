@@ -152,6 +152,13 @@ void drawMenus() {
 				case TEXT_ITEM:
 					struct ItemText* txtItem = (struct ItemText*)item;
 					int txtSizeX = getCustomFontSize(txtItem->fontId, txtItem->text);
+					if (menu->fixedSize && txtSizeX > menu->xSize) {
+						int singleCharSize = txtSizeX/strlen(txtItem->text);
+						for (int i = txtSizeX; i > menu->xSize; i--) {
+							txtItem->text[i/singleCharSize] = '\0';
+						}
+					}
+
 					renderMenuText(menu, item, largestY);
 
 					largestX = MAX(largestX, txtSizeX);
