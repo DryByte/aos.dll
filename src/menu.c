@@ -90,6 +90,7 @@ struct Menu* createMenu(int x, int y, int outline, char* title) {
 	menu->y = y;
 	menu->xSize = 1;
 	menu->ySize = 1;
+	menu->fixedSize = 0;
 	menu->hidden = 1;
 	strncpy(menu->title, title, 32);
 
@@ -176,8 +177,13 @@ void drawMenus() {
 		}
 
 		largestY = MAX(menu->ySize, largestY);
-		menu->xSize = largestX;
-		menu->ySize = largestY;
+		if (menu->fixedSize) {
+			largestX = menu->xSize;
+			largestY = menu->ySize;
+		} else {
+			menu->xSize = largestX;
+			menu->ySize = largestY;
+		}
 
 		// separator title | content
 		drawline2d(menu->x, menu->y+8, menu->x+largestX, menu->y+8, menu->outlineColor);

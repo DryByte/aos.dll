@@ -41,6 +41,7 @@ struct Menu {
 	int id;
 	int x, y;
 	int xSize, ySize;
+	int fixedSize;
 	int hidden;
 	int outlineColor;
 	int backgroundColor;
