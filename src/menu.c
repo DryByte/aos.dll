@@ -88,9 +88,9 @@ struct Menu* createMenu(int x, int y, int outline, char* title) {
 	menu->outlineColor = outline;
 	menu->x = x;
 	menu->y = y;
-	menu->xSize = 1;
-	menu->ySize = 1;
-	menu->fixedSize = 0;
+	menu->xSize = 150;
+	menu->ySize = 100;
+	menu->fixedSize = 1;
 	menu->hidden = 1;
 	strncpy(menu->title, title, 32);
 
@@ -170,10 +170,34 @@ void drawMenus() {
 				case MULTITEXT_ITEM:
 					struct ItemMultitext* multitext = (struct ItemMultitext*)item;
 					struct MultitextNode* lastNode = multitext->lastNode;
-					for (int i=0; i<5; i++) {
-						drawText(menu->x, menu->y+largestY, multitext->color, lastNode->text);
-						largestX = MAX(largestX, strlen(lastNode->text)*8);
-						largestY += 8;
+
+					for (int i = 0; i < 5; i++) {
+						int txtSizeX = strlen(lastNode->text)*6; // drawText uses 6x8
+
+						if (menu->fixedSize && txtSizeX > menu->xSize) {
+							char copyTxtNode[128];
+							int characterCopy = 0;
+
+							for (int characterNode = 0; characterNode < txtSizeX/6; characterNode++) {
+								int copyTxtNodeLen = strlen(copyTxtNode)*6;
+								if (copyTxtNodeLen+2 > menu->xSize) {
+									drawText(menu->x, menu->y+largestY, multitext->color, copyTxtNode);
+									largestY += 8;
+									memset(copyTxtNode, 0, sizeof copyTxtNode);
+									characterCopy = 0;
+								}
+
+								copyTxtNode[characterCopy] = lastNode->text[characterNode];
+								characterCopy+=1;
+							}
+
+							drawText(menu->x, menu->y+largestY, multitext->color, copyTxtNode);
+						} else {
+							drawText(menu->x, menu->y+largestY, multitext->color, lastNode->text);
+						}
+
+						largestX = MAX(largestX, txtSizeX);
+						largestY += 10;
 
 						if (lastNode->previous == 0)
 							break;
