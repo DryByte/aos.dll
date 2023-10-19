@@ -21,13 +21,13 @@ void drawline2d(int x1, int y1, int x2, int y2, int color) {
 void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, long sy, long xz, long yz, long black) {
 	asm volatile(
 		"push %11\n\t" //black
-		"shl $0x10, %10\n\t"
+		"shll $0x10, %10\n\t"
 		"push %10\n\t" // zoom
-		"shl $0x10, %9\n\t"
+		"shll $0x10, %9\n\t"
 		"push %9\n\t" // zoom
 
 		"mov %8, %%edi\n\t" //sy
-		"shl $0x10, %%edi\n\t"
+		"shll $0x10, %%edi\n\t"
 		"push %%edi\n\t" 
 		"mov %7, %%esi\n\t" // sx
 		"shl $0x10, %%esi\n\t"
@@ -57,4 +57,33 @@ void playsound2d(char *filnam, long volperc) {
 		"add $0x19c30, %0\n\t"
 		"call *%0"
 	:: "r" (clientBase), "r" (filnam), "r" (volperc));
+}
+
+// this function actually comes from winmain.cpp
+// in aos, probably the compiler though this is just used once,
+// with same address so it managed to set it in the offsets:
+//  fmousx  ,  fmousy  ,  fmousz  ,  bstatus
+// 0x13b1e14, 0x13cf80c, 0x12b1b58, 0x13b7550
+// so this function will actually do what it supposed to do using
+// the parameters
+// probably this function is useless, since this is called
+// everytime in the main loop
+// TODO: figure out why floats doesnt work
+void readmouse(int *fmousx, int *fmousy, int* bstatus) {
+	asm volatile(
+		"mov $0x4192d0, %esi\n\t"
+		"call *%esi"
+	);
+
+	*fmousx = *(int*)(clientBase+0x13b1e14);
+	*fmousy = *(int*)(clientBase+0x13cf80c);
+	*bstatus = *(int*)(clientBase+0x13b7550);
+}
+
+// a replacer to readmouse() so this can be used through the
+// aos original loop
+void getmousechange(int *fmousx, int *fmousy, int* bstatus) {
+	*fmousx = *(int*)(clientBase+0x13b1e14);
+	*fmousy = *(int*)(clientBase+0x13cf80c);
+	*bstatus = *(int*)(clientBase+0x13b7550);
 }

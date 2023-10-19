@@ -215,9 +215,32 @@ void renderChatshadow() {
 	}
 }
 
+int mx;
+int my;
+int status;
+
+int mousexpos = 400;
+int mouseypos = 300;
+
 // hook before interface render
 __declspec(naked) void renderingHookBI() {
 	asm volatile("pusha");
+	drawText(mousexpos, mouseypos, 0xff00ff, "just a test");
+
+	if (!mousexpos) {
+		mousexpos = mx;
+	} else {
+		mousexpos += mx;
+	}
+
+	if (!mouseypos) {
+		mouseypos = my;
+	} else {
+		mouseypos += my;
+	}
+
+	//readmouse(&mx, &my, &status);
+	getmousechange(&mx, &my, &status);
 
 	renderChatshadow();
 

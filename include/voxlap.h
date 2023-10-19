@@ -8,3 +8,6 @@ void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, l
 	// sound related functions:
 	// these functions actually comes from sysmain.h
 void playsound2d(char *filnam, long volperc);
+
+void readmouse(int *fmousx, int *fmousy, int* bstatus);
+void getmousechange(int *fmousx, int *fmousy, int* bstatus); // non oficial sysmain.h
