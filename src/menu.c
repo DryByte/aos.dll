@@ -4,10 +4,16 @@
 #include <windows.h>
 #include <window.h>
 #include <voxlap.h>
+#include <aos_config.h>
 
 #define MAX(x,y) (x>y) ? x : y
+#define MIN(x,y) (x<y) ? x : y
 
 struct Menu* menus[MAX_MENU_ENTRIES];
+
+int mouseXPos = 0;
+int mouseYPos = 0;
+int showCursor = 0;
 
 int getNextAvailableMenuId() {
 	int i = 0;
@@ -99,7 +105,7 @@ struct Menu* createMenu(int x, int y, int outline, char* title) {
 }
 
 void showAllMenus() {
-	aosToggleCursor();
+	showCursor = 1;
 	int menusLen = getNextAvailableMenuId();
 
 	for (int menuId = 0; menuId < menusLen; menuId++) {
@@ -109,7 +115,7 @@ void showAllMenus() {
 }
 
 void hideAllMenus() {
-	aosToggleCursor();
+	showCursor = 0;
 	int menusLen = getNextAvailableMenuId();
 
 	for (int menuId = 0; menuId < menusLen; menuId++) {
@@ -122,8 +128,46 @@ void renderMenuText(struct Menu* menu, struct ItemText* item, int y) {
 	drawCustomFontText(menu->x, menu->y+y, item->color, item->fontId, item->text);
 }
 
+//returns 1 if an interaction happened
+int handleCursor() {
+	int mx;
+	int my;
+	int status;
+
+	struct WindowSize winsize = getConfigWindowSize();
+	getmousechange(&mx, &my, &status);
+
+	mouseXPos += mx;
+	mouseYPos += my;
+
+	if (mouseXPos < 0) {
+		mouseXPos = 0;
+	} else {
+		mouseXPos = MIN(mouseXPos, winsize.width);
+	}
+
+	if (mouseYPos < 0) {
+		mouseYPos = 0;
+	} else {
+		mouseYPos = MIN(mouseYPos, winsize.height);
+	}
+
+	return status;
+}
+
+void drawCursor() {
+	// todo load mouse cursor image
+	long color[] = {0xffffffff};
+	drawtile(color, 1, 1, 1, 0x0, 0x0, mouseXPos, mouseYPos, 15, 15, -1);
+}
+
 void drawMenus() {
 	int menusLen = getNextAvailableMenuId();
+
+	int interaction = 0;
+	if (showCursor)
+		interaction = handleCursor();
+
 	for (int menuId = 0; menuId < menusLen; menuId++) {
 		struct Menu* menu = (struct Menu*)menus[menuId];
 		if (menu->hidden)
@@ -225,4 +269,7 @@ void drawMenus() {
 		drawline2d(menu->x, menu->y, menu->x, menu->y+largestY, menu->outlineColor);
 		drawline2d(menu->x+largestX, menu->y, menu->x+largestX, menu->y+largestY, menu->outlineColor);
 	}
+
+	if (showCursor)
+		drawCursor();
 }

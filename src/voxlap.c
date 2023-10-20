@@ -63,7 +63,7 @@ void playsound2d(char *filnam, long volperc) {
 // in aos, probably the compiler though this is just used once,
 // with same address so it managed to set it in the offsets:
 //  fmousx  ,  fmousy  ,  fmousz  ,  bstatus
-// 0x13b1e14, 0x13cf80c, 0x12b1b58, 0x13b7550
+// 0x13b1e14, 0x13cf80c, 0x12b1b58, 0x13b75b0
 // so this function will actually do what it supposed to do using
 // the parameters
 // probably this function is useless, since this is called
@@ -77,7 +77,7 @@ void readmouse(int *fmousx, int *fmousy, int* bstatus) {
 
 	*fmousx = *(int*)(clientBase+0x13b1e14);
 	*fmousy = *(int*)(clientBase+0x13cf80c);
-	*bstatus = *(int*)(clientBase+0x13b7550);
+	*bstatus = *(int*)(clientBase+0x13b75b0);
 }
 
 // a replacer to readmouse() so this can be used through the
@@ -85,5 +85,5 @@ void readmouse(int *fmousx, int *fmousy, int* bstatus) {
 void getmousechange(int *fmousx, int *fmousy, int* bstatus) {
 	*fmousx = *(int*)(clientBase+0x13b1e14);
 	*fmousy = *(int*)(clientBase+0x13cf80c);
-	*bstatus = *(int*)(clientBase+0x13b7550);
+	*bstatus = *(int*)(clientBase+0x13b75b0);
 }
