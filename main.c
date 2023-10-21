@@ -11,6 +11,14 @@
 HANDLE clientBase;
 struct ItemMultitext* LoggerMultitext;
 
+void testBtnEventHandler(struct Menu* menu, struct ItemClickableButton* btn) {
+	if (btn->isClicking) {
+		strncpy(btn->text, "YOU MADE IT!", 32);
+	} else {
+		strncpy(btn->text, "CLICK ME!", 32);
+	}
+}
+
 DWORD WINAPI LoopFunction(LPVOID lpParam)
 {
 	HANDLE aos = GetCurrentProcess();
@@ -39,8 +47,9 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	createHook(clientBase, 0x334aa, renderingHookAI);
 
 	struct Menu* mfds = createMenu(150, 20, 0, "Just a test");
-	createText(mfds, 0, 0xffffff, "muito foda");
+	createText(mfds, 0, 0xffffff, "muito dasdasd");
 	createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
+	createClickableButton(mfds, "CLICK ME!", &testBtnEventHandler);
 
 	struct Menu* LoggerMenu = createMenu(300, 200, 0, "Logger");
 	LoggerMultitext = createMultitext(LoggerMenu, 0xffffff);

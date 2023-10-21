@@ -5,7 +5,7 @@
 
 enum itemTypes {
 	TEXT_ITEM,
-	BUTTON_ITEM,
+	CLICKABLE_BUTTON_ITEM,
 	MULTITEXT_ITEM
 };
 
@@ -37,6 +37,18 @@ struct ItemMultitext {
 	struct MultitextNode* lastNode;
 };
 
+struct ItemClickableButton
+{
+	uint8_t type;
+	int id;
+	int isClicking;
+	long color;
+	long holdColor;
+	char text[32];
+	int xSize, ySize;
+	void (*event)();
+};
+
 struct Menu {
 	int id;
 	int x, y;
@@ -56,5 +68,6 @@ int getNextAvailableMenuId();
 void createText(struct Menu* menu, int fontid, int color, char* text);
 void addNewText(struct ItemMultitext* multitext, char* text);
 struct ItemMultitext* createMultitext(struct Menu* menu, int color);
+void createClickableButton(struct Menu* menu, char* text, void (*func)());
 struct Menu* createMenu(int x, int y, int outline, char* title);
 void drawMenus();

@@ -86,6 +86,23 @@ struct ItemMultitext* createMultitext(struct Menu* menu, int color) {
 	return multitextItem;
 }
 
+void createClickableButton(struct Menu* menu, char* text, void (*func)()) {
+	int id = getNextAvailableItemId(menu);
+
+	struct ItemClickableButton* btn = malloc(sizeof(struct ItemClickableButton) + 32);
+	btn->type = 1;
+	btn->id = id;
+	btn->color = 0xffff0000;
+	btn->holdColor = 0xff00ff00;
+	btn->xSize = 60;
+	btn->ySize = 20;
+	btn->event = func;
+	strncpy(btn->text, text, 32);
+
+	menu->items[id] = btn;
+	menus[menu->id] = menu;
+}
+
 struct Menu* createMenu(int x, int y, int outline, char* title) {
 	int menuId = getNextAvailableMenuId();
 	struct Menu* menu = malloc(sizeof(struct Menu)+32);	
@@ -155,6 +172,10 @@ int handleCursor() {
 	return status;
 }
 
+int checkCursorOver(int areaX1, int areaY1, int areaX2, int areaY2) {
+	return (mouseXPos >= areaX1 && mouseXPos <= areaX2 && mouseYPos >= areaY1 && mouseYPos <= areaY2);
+}
+
 void drawCursor() {
 	// todo load mouse cursor image
 	long color[] = {0xffffffff};
@@ -208,8 +229,39 @@ void drawMenus() {
 					largestX = MAX(largestX, txtSizeX);
 					largestY += MAX(largestY, ((txtItem->fontId+1)*8)+8);
 					break;
-				case BUTTON_ITEM:
-					printf("nop\n");
+				case CLICKABLE_BUTTON_ITEM:
+					struct ItemClickableButton* clickBtn = (struct ItemClickableButton*)item;
+
+					if (interaction && checkCursorOver(menu->x, menu->y+largestY,
+													   menu->x+clickBtn->xSize,
+													   menu->y+largestY+clickBtn->ySize))
+					{
+						color[0] = clickBtn->holdColor;
+						clickBtn->isClicking = 1;
+						clickBtn->event(menu, clickBtn);
+					} else {
+						// i prefer this than setting value two times
+						// probably later i cna find something better
+						int clicking = clickBtn->isClicking;
+						clickBtn->isClicking = 0;
+						if (clicking) {
+							clickBtn->event(menu, clickBtn);
+						}
+
+						color[0] = clickBtn->color;
+					}
+
+					drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+largestY, clickBtn->xSize, clickBtn->ySize, -1);
+
+					int textlen = strlen(clickBtn->text);
+					drawText(menu->x+clickBtn->xSize/2-textlen*3, menu->y+largestY+clickBtn->ySize/2-4, 0x0, clickBtn->text);
+
+					drawline2d(menu->x, menu->y+largestY, menu->x+clickBtn->xSize, menu->y+largestY, 0x0);
+					drawline2d(menu->x, menu->y+largestY+clickBtn->ySize, menu->x+clickBtn->xSize, menu->y+largestY+clickBtn->ySize, 0x0);
+
+					drawline2d(menu->x, menu->y+largestY, menu->x, menu->y+largestY+clickBtn->ySize, 0x0);
+					drawline2d(menu->x+clickBtn->xSize, menu->y+largestY, menu->x+clickBtn->xSize, menu->y+largestY+clickBtn->ySize, 0x0);
+
 					break;
 				case MULTITEXT_ITEM:
 					struct ItemMultitext* multitext = (struct ItemMultitext*)item;
