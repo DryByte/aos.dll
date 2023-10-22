@@ -320,6 +320,13 @@ void drawMenus() {
 
 		drawline2d(menu->x, menu->y, menu->x, menu->y+largestY, menu->outlineColor);
 		drawline2d(menu->x+largestX, menu->y, menu->x+largestX, menu->y+largestY, menu->outlineColor);
+
+		if (interaction && checkCursorOver(menu->x, menu->y, menu->x+largestX, menu->y+8)) {
+			int xoffset, yoffset, bst;
+			getmousechange(&xoffset, &yoffset, &bst);
+			menu->x += xoffset;
+			menu->y += yoffset;
+		}
 	}
 
 	if (showCursor)
