@@ -101,11 +101,7 @@ void renderStats() {
 	int maxFps = (int)(1 / *(float*)(clientBase+0x48e00))+1;
 	int currentFps = (int)(1 / *(float*)(clientBase+0x13cf83c))+1;
 
-	drawline2d(1, 1, 10*8, 1, 0xff0000);
-	drawline2d(1, 10, 10*8, 10, 0xff0000);
-	drawline2d(1, 1, 1, 10, 0xff0000);
-	drawline2d(10*8, 1, 10*8, 10, 0xff0000);
-
+	drawSquare(1, 1, 10*8, 10, 0xff0000);
 	sprintf(fps, "FPS: %i/%i", currentFps, maxFps);
 	drawText(2,2, 0xffffff, fps);
 }
@@ -213,6 +209,13 @@ void renderChatshadow() {
 		long color[] = {0xe0000000};
 		drawtile(color, 1, 1, 1, 0x0, 0x0, 10, yPos, 6*xSize, ySize, -1);
 	}
+}
+
+void drawSquare(int x1, int y1, int x2, int y2, int color) {
+	drawline2d(x1, y1, x2, y1, color);
+	drawline2d(x2, y1, x2, y2, color);
+	drawline2d(x1, y2, x2, y2, color);
+	drawline2d(x1, y1, x1, y2, color);
 }
 
 // hook before interface render

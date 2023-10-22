@@ -256,11 +256,7 @@ void drawMenus() {
 					int textlen = strlen(clickBtn->text);
 					drawText(menu->x+clickBtn->xSize/2-textlen*3, menu->y+largestY+clickBtn->ySize/2-4, 0x0, clickBtn->text);
 
-					drawline2d(menu->x, menu->y+largestY, menu->x+clickBtn->xSize, menu->y+largestY, 0x0);
-					drawline2d(menu->x, menu->y+largestY+clickBtn->ySize, menu->x+clickBtn->xSize, menu->y+largestY+clickBtn->ySize, 0x0);
-
-					drawline2d(menu->x, menu->y+largestY, menu->x, menu->y+largestY+clickBtn->ySize, 0x0);
-					drawline2d(menu->x+clickBtn->xSize, menu->y+largestY, menu->x+clickBtn->xSize, menu->y+largestY+clickBtn->ySize, 0x0);
+					drawSquare(menu->x, menu->y+largestY, menu->x+clickBtn->xSize, menu->y+largestY+clickBtn->ySize, 0x0);
 
 					break;
 				case MULTITEXT_ITEM:
@@ -314,12 +310,7 @@ void drawMenus() {
 
 		// separator title | content
 		drawline2d(menu->x, menu->y+8, menu->x+largestX, menu->y+8, menu->outlineColor);
-
-		drawline2d(menu->x, menu->y, menu->x+largestX, menu->y, menu->outlineColor);
-		drawline2d(menu->x, menu->y+largestY, menu->x+largestX, menu->y+largestY, menu->outlineColor);
-
-		drawline2d(menu->x, menu->y, menu->x, menu->y+largestY, menu->outlineColor);
-		drawline2d(menu->x+largestX, menu->y, menu->x+largestX, menu->y+largestY, menu->outlineColor);
+		drawSquare(menu->x, menu->y, menu->x+largestX, menu->y+largestY, menu->outlineColor);
 
 		if (interaction && checkCursorOver(menu->x, menu->y, menu->x+largestX, menu->y+8)) {
 			int xoffset, yoffset, bst;
