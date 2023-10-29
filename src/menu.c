@@ -373,6 +373,8 @@ void drawMenus() {
 					}
 
 					drawText(menu->x, menu->y+largestY+input->ySize/2-4, 0x505050, textDisplay);
+
+					largestY += input->ySize+2;
 			}
 		}
 

@@ -53,6 +53,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
 	createClickableButton(mfds, "CLICK ME!", &testBtnEventHandler);
 	createTextInput(mfds, 90, 15, 0xffffffff, "Type here ma friend");
+	createTextInput(mfds, 90, 15, 0xffffffff, "her too");
 
 	struct Menu* LoggerMenu = createMenu(300, 200, 0, "Logger");
 	LoggerMultitext = createMultitext(LoggerMenu, 0xffffff);
