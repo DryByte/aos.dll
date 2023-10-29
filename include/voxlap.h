@@ -11,3 +11,5 @@ void playsound2d(char *filnam, long volperc);
 
 void readmouse(int *fmousx, int *fmousy, int* bstatus);
 void getmousechange(int *fmousx, int *fmousy, int* bstatus); // non oficial sysmain.h
+
+long keyread();

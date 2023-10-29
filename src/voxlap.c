@@ -87,3 +87,16 @@ void getmousechange(int *fmousx, int *fmousy, int* bstatus) {
 	*fmousy = *(int*)(clientBase+0x13cf80c);
 	*bstatus = *(int*)(clientBase+0x13b75b0);
 }
+
+long keyread() {
+	long keybuf = (long)clientBase+0x7c770;
+	long keybufw = *(long*)(clientBase+0x84acc);
+	long* keybufr = (long*)(clientBase+0x84ac8);
+
+	if (*keybufr == keybufw)
+		return 0;
+
+	long tores = *(long*)(keybuf+*keybufr*4);
+	*keybufr = (*keybufr+1)&255;
+	return tores;
+}

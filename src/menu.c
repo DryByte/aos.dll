@@ -103,6 +103,22 @@ void createClickableButton(struct Menu* menu, char* text, void (*func)()) {
 	menus[menu->id] = menu;
 }
 
+void createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundColor, char* placeholder) {
+	int id = getNextAvailableItemId(menu);
+
+	struct ItemTextInput* input = malloc(sizeof(struct ItemTextInput) + 256);
+	input->type = 3;
+	input->id = id;
+	input->xSize = xSize;
+	input->ySize = ySize;
+	input->backgroundColor = backgroundColor;
+	input->isActive = 0;
+	strncpy(input->placeholder, placeholder, 128);
+
+	menu->items[id] = input;
+	menus[menu->id] = menu;
+}
+
 struct Menu* createMenu(int x, int y, int outline, char* title) {
 	int menuId = getNextAvailableMenuId();
 	struct Menu* menu = malloc(sizeof(struct Menu)+32);	
@@ -186,8 +202,16 @@ void drawMenus() {
 	int menusLen = getNextAvailableMenuId();
 
 	int interaction = 0;
-	if (showCursor)
+	if (showCursor) {
 		interaction = handleCursor();
+		long keys = keyread();
+		//printf("%i\n", keys);
+		if(keys&255) {
+			//char a = (char)keys&255;
+			printf("Found! %i\n", keys);
+			printf("%c", keys&255);
+		}
+	}
 
 	for (int menuId = 0; menuId < menusLen; menuId++) {
 		struct Menu* menu = (struct Menu*)menus[menuId];
@@ -258,6 +282,8 @@ void drawMenus() {
 
 					drawSquare(menu->x, menu->y+largestY, menu->x+clickBtn->xSize, menu->y+largestY+clickBtn->ySize, 0x0);
 
+					largestX = MAX(largestX, clickBtn->xSize);
+					largestY += clickBtn->ySize+2;
 					break;
 				case MULTITEXT_ITEM:
 					struct ItemMultitext* multitext = (struct ItemMultitext*)item;
@@ -296,6 +322,35 @@ void drawMenus() {
 
 						lastNode = lastNode->previous;
 					}
+					break;
+				case TEXTINPUT_ITEM:
+					struct ItemTextInput* input = (struct ItemTextInput*)item;
+
+					color[0] = input->backgroundColor;
+					drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+largestY, input->xSize, input->ySize, -1);
+					char textDisplay[input->xSize/6];
+
+					if (interaction && checkCursorOver(menu->x, menu->y+largestY,
+													   menu->x+input->xSize,
+													   menu->y+largestY+input->ySize))
+					{
+						input->isActive = 1;
+					}
+
+					if (!input->isActive) {
+						if (input->input[0]) {
+							strncpy(textDisplay, input->input, input->xSize/6);
+						} else {
+							strncpy(textDisplay, input->placeholder, input->xSize/6);
+						}
+					} else {
+						char result[129];
+						strcat(result, input->input);
+						strcat(result, "_");
+						strncpy(textDisplay, result, input->xSize/6);
+					}
+
+					drawText(menu->x, menu->y+largestY+input->ySize/2-4, 0x505050, textDisplay);
 			}
 		}
 

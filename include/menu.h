@@ -6,7 +6,8 @@
 enum itemTypes {
 	TEXT_ITEM,
 	CLICKABLE_BUTTON_ITEM,
-	MULTITEXT_ITEM
+	MULTITEXT_ITEM,
+	TEXTINPUT_ITEM
 };
 
 struct Item {
@@ -49,6 +50,17 @@ struct ItemClickableButton
 	void (*event)();
 };
 
+struct ItemTextInput
+{
+	uint8_t type;
+	uint8_t isActive;
+	long backgroundColor;
+	int id;
+	char placeholder[128];
+	char input[128];
+	int xSize, ySize;
+};
+
 struct Menu {
 	int id;
 	int x, y;
@@ -69,5 +81,6 @@ void createText(struct Menu* menu, int fontid, int color, char* text);
 void addNewText(struct ItemMultitext* multitext, char* text);
 struct ItemMultitext* createMultitext(struct Menu* menu, int color);
 void createClickableButton(struct Menu* menu, char* text, void (*func)());
+void createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundColor, char* placeholder);
 struct Menu* createMenu(int x, int y, int outline, char* title);
 void drawMenus();
