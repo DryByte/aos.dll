@@ -115,7 +115,6 @@ void createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundCol
 	input->xSize = xSize;
 	input->ySize = ySize;
 	input->backgroundColor = backgroundColor;
-	input->isActive = 0;
 	strncpy(input->placeholder, placeholder, 128);
 
 	menu->items[id] = input;
@@ -195,15 +194,23 @@ void handleKeyboard() {
 	if (!activeInputItem)
 		return;
 
-	long key = keyread();
-	if(!key&255)
+	long key = keyread()&255;
+	if(!key)
 		return;
 
 	int currentLen = strlen(activeInputItem->input);
 	if (currentLen > 127)
 		return;
 
-	activeInputItem->input[currentLen] = key&255;
+	if(key == 8) {
+		activeInputItem->input[currentLen-1] = 0;
+		return;
+	} else if (key == 13) {
+		activeInputItem = 0;
+		return;
+	}
+
+	activeInputItem->input[currentLen] = key;
 
 }
 
@@ -346,23 +353,22 @@ void drawMenus() {
 													   menu->x+input->xSize,
 													   menu->y+largestY+input->ySize))
 					{
-						input->isActive = 1;
 						activeInputItem = input;
 					}
 
-					if (!input->isActive) {
-						if (input->input[0]) {
-							strncpy(textDisplay, input->input, displayLen);
-						} else {
-							strncpy(textDisplay, input->placeholder, displayLen);
-						}
-					} else {
+					if (activeInputItem && activeInputItem->id == input->id) {
 						int inputlen = strlen(input->input);
 
 						if (inputlen < displayLen) {
 							snprintf(textDisplay, displayLen, "%s_", input->input);
 						} else {
 							snprintf(textDisplay, displayLen, "%s_", &input->input[inputlen-displayLen]);
+						}	
+					} else {
+						if (input->input[0]) {
+							strncpy(textDisplay, input->input, displayLen);
+						} else {
+							strncpy(textDisplay, input->placeholder, displayLen);
 						}
 					}
 

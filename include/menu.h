@@ -53,7 +53,6 @@ struct ItemClickableButton
 struct ItemTextInput
 {
 	uint8_t type;
-	uint8_t isActive;
 	long backgroundColor;
 	int id;
 	char placeholder[128];
