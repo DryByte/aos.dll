@@ -357,9 +357,13 @@ void drawMenus() {
 							strncpy(textDisplay, input->placeholder, displayLen);
 						}
 					} else {
-						char result[129];
-						snprintf(result, displayLen, "%s_", input->input);
-						strncpy(textDisplay, result, displayLen);
+						int inputlen = strlen(input->input);
+
+						if (inputlen < displayLen) {
+							snprintf(textDisplay, displayLen, "%s_", input->input);
+						} else {
+							snprintf(textDisplay, displayLen, "%s_", &input->input[inputlen-displayLen]);
+						}
 					}
 
 					drawText(menu->x, menu->y+largestY+input->ySize/2-4, 0x505050, textDisplay);
