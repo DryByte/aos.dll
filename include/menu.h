@@ -82,5 +82,6 @@ void addNewText(struct ItemMultitext* multitext, char* text);
 struct ItemMultitext* createMultitext(struct Menu* menu, int color);
 void createClickableButton(struct Menu* menu, char* text, void (*func)());
 void createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundColor, char* placeholder);
+void handleKeyboard();
 struct Menu* createMenu(int x, int y, int outline, char* title);
 void drawMenus();

@@ -7,6 +7,7 @@
 #include <packets.h>
 #include <aos_config.h>
 #include <menu.h>
+#include <inputs.h>
 
 HANDLE clientBase;
 struct ItemMultitext* LoggerMultitext;
@@ -45,6 +46,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	createHook(clientBase, 0x343e4, packetHandler);
 	createHook(clientBase, 0x32f00, renderingHookBI);
 	createHook(clientBase, 0x334aa, renderingHookAI);
+	createHook(clientBase, 0x3126d, hookInputs);
 
 	struct Menu* mfds = createMenu(150, 20, 0, "Just a test");
 	createText(mfds, 0, 0xffffff, "muito dasdasd");

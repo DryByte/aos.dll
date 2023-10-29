@@ -15,6 +15,9 @@ int mouseXPos = 0;
 int mouseYPos = 0;
 int showCursor = 0;
 
+// only one can be active per time
+struct ItemTextInput* activeInputItem = 0;
+
 int getNextAvailableMenuId() {
 	int i = 0;
 	for (; i <= MAX_MENU_ENTRIES; i++) {
@@ -188,6 +191,22 @@ int handleCursor() {
 	return status;
 }
 
+void handleKeyboard() {
+	if (!activeInputItem)
+		return;
+
+	long key = keyread();
+	if(!key&255)
+		return;
+
+	int currentLen = strlen(activeInputItem->input);
+	if (currentLen > 127)
+		return;
+
+	activeInputItem->input[currentLen] = key&255;
+
+}
+
 int checkCursorOver(int areaX1, int areaY1, int areaX2, int areaY2) {
 	return (mouseXPos >= areaX1 && mouseXPos <= areaX2 && mouseYPos >= areaY1 && mouseYPos <= areaY2);
 }
@@ -202,16 +221,8 @@ void drawMenus() {
 	int menusLen = getNextAvailableMenuId();
 
 	int interaction = 0;
-	if (showCursor) {
+	if (showCursor)
 		interaction = handleCursor();
-		long keys = keyread();
-		//printf("%i\n", keys);
-		if(keys&255) {
-			//char a = (char)keys&255;
-			printf("Found! %i\n", keys);
-			printf("%c", keys&255);
-		}
-	}
 
 	for (int menuId = 0; menuId < menusLen; menuId++) {
 		struct Menu* menu = (struct Menu*)menus[menuId];
@@ -328,26 +339,27 @@ void drawMenus() {
 
 					color[0] = input->backgroundColor;
 					drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+largestY, input->xSize, input->ySize, -1);
-					char textDisplay[input->xSize/6];
+					int displayLen = input->xSize/6;
+					char textDisplay[displayLen];
 
 					if (interaction && checkCursorOver(menu->x, menu->y+largestY,
 													   menu->x+input->xSize,
 													   menu->y+largestY+input->ySize))
 					{
 						input->isActive = 1;
+						activeInputItem = input;
 					}
 
 					if (!input->isActive) {
 						if (input->input[0]) {
-							strncpy(textDisplay, input->input, input->xSize/6);
+							strncpy(textDisplay, input->input, displayLen);
 						} else {
-							strncpy(textDisplay, input->placeholder, input->xSize/6);
+							strncpy(textDisplay, input->placeholder, displayLen);
 						}
 					} else {
 						char result[129];
-						strcat(result, input->input);
-						strcat(result, "_");
-						strncpy(textDisplay, result, input->xSize/6);
+						snprintf(result, displayLen, "%s_", input->input);
+						strncpy(textDisplay, result, displayLen);
 					}
 
 					drawText(menu->x, menu->y+largestY+input->ySize/2-4, 0x505050, textDisplay);
