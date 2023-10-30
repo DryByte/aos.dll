@@ -9,8 +9,13 @@ __declspec(naked) void hookInputs() {
 
 	asm volatile(
 		"push %%edi\n\t"
-		"movl (0x17b75b0), %%edi\n\t"
-		"movl %%edi, (0x17cf6d0)\n\t"
+		"mov %0, %%eax\n\t"
+		"mov %%eax, %%edi\n\t"
+		"add $0x13b75b0, %%edi\n\t"
+		"movl (%%edi), %%edi\n\t"
+		"mov %%eax, %%esi\n\t"
+		"add $0x13cf6d0, %%esi\n\t"// bstatus
+		"movl %%edi, (%%esi)\n\t"
 		"add $0x31273, %0\n\t"
 		"jmp *%0"
 		:: "r" (clientBase));
