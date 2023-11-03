@@ -49,11 +49,19 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	createHook(clientBase, 0x3126d, hookInputs);
 
 	struct Menu* mfds = createMenu(150, 20, 0, "Just a test");
-	createText(mfds, 0, 0xffffff, "muito dasdasd");
-	createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
-	createClickableButton(mfds, "CLICK ME!", &testBtnEventHandler);
+	mfds->fixedSize = 0;
+
+	struct ItemText* itemfds = createText(mfds, 0, 0xffffff, "muito dasdasd");
+	itemfds->yPos = 50;
+
+	struct ItemText* itemfds2 = createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
+	struct ItemClickableButton* btnfds = createClickableButton(mfds, "CLICK ME!", &testBtnEventHandler);
+	btnfds->yPos = 15;
+
 	createTextInput(mfds, 90, 15, 0xffffffff, "Type here ma friend");
-	createTextInput(mfds, 90, 15, 0xffffffff, "her too");
+	struct ItemTextInput* inpfds = createTextInput(mfds, 90, 15, 0xffffffff, "here too");
+	inpfds->xPos = 250;
+	inpfds->yPos = 9;
 
 	struct Menu* LoggerMenu = createMenu(300, 200, 0, "Logger");
 	LoggerMultitext = createMultitext(LoggerMenu, 0xffffff);

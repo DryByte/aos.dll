@@ -20,6 +20,7 @@ struct ItemText {
 	int color;
 	int fontId;
 	char text[32];
+	int xPos, yPos;
 };
 
 struct MultitextNode {
@@ -47,6 +48,7 @@ struct ItemClickableButton
 	long holdColor;
 	char text[32];
 	int xSize, ySize;
+	int xPos, yPos;
 	void (*event)();
 };
 
@@ -58,6 +60,7 @@ struct ItemTextInput
 	char placeholder[128];
 	char input[128];
 	int xSize, ySize;
+	int xPos, yPos;
 };
 
 struct Menu {
@@ -76,11 +79,11 @@ struct Menu {
 void showAllMenus();
 void hideAllMenus();
 int getNextAvailableMenuId();
-void createText(struct Menu* menu, int fontid, int color, char* text);
+struct ItemText* createText(struct Menu* menu, int fontid, int color, char* text);
 void addNewText(struct ItemMultitext* multitext, char* text);
 struct ItemMultitext* createMultitext(struct Menu* menu, int color);
-void createClickableButton(struct Menu* menu, char* text, void (*func)());
-void createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundColor, char* placeholder);
+struct ItemClickableButton* createClickableButton(struct Menu* menu, char* text, void (*func)());
+struct ItemTextInput* createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundColor, char* placeholder);
 void handleKeyboard();
 struct Menu* createMenu(int x, int y, int outline, char* title);
 void drawMenus();

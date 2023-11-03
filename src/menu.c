@@ -38,7 +38,7 @@ int getNextAvailableItemId(struct Menu* menu) {
 	return i;
 }
 
-void createText(struct Menu* menu, int fontid, int color, char* text) {
+struct ItemText* createText(struct Menu* menu, int fontid, int color, char* text) {
 	int id = getNextAvailableItemId(menu);
 
 	struct ItemText* txtItem = malloc(sizeof(struct ItemText)+32);
@@ -46,10 +46,14 @@ void createText(struct Menu* menu, int fontid, int color, char* text) {
 	txtItem->id = id;
 	txtItem->color = color;
 	txtItem->fontId = fontid;
+	txtItem->xPos = 0;
+	txtItem->yPos = 0;
 	strncpy(txtItem->text, text, 32);
 
 	menu->items[id] = txtItem;
 	menus[menu->id] = menu;
+
+	return txtItem;
 }
 
 void addNewText(struct ItemMultitext* multitext, char* text) {
@@ -89,7 +93,7 @@ struct ItemMultitext* createMultitext(struct Menu* menu, int color) {
 	return multitextItem;
 }
 
-void createClickableButton(struct Menu* menu, char* text, void (*func)()) {
+struct ItemClickableButton* createClickableButton(struct Menu* menu, char* text, void (*func)()) {
 	int id = getNextAvailableItemId(menu);
 
 	struct ItemClickableButton* btn = malloc(sizeof(struct ItemClickableButton) + 32);
@@ -99,14 +103,18 @@ void createClickableButton(struct Menu* menu, char* text, void (*func)()) {
 	btn->holdColor = 0xff00ff00;
 	btn->xSize = 60;
 	btn->ySize = 20;
+	btn->xPos = 0;
+	btn->yPos = 0;
 	btn->event = func;
 	strncpy(btn->text, text, 32);
 
 	menu->items[id] = btn;
 	menus[menu->id] = menu;
+
+	return btn;
 }
 
-void createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundColor, char* placeholder) {
+struct ItemTextInput* createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundColor, char* placeholder) {
 	int id = getNextAvailableItemId(menu);
 
 	struct ItemTextInput* input = malloc(sizeof(struct ItemTextInput) + 256);
@@ -114,11 +122,15 @@ void createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundCol
 	input->id = id;
 	input->xSize = xSize;
 	input->ySize = ySize;
+	input->xPos = 0;
+	input->yPos = 0;
 	input->backgroundColor = backgroundColor;
 	strncpy(input->placeholder, placeholder, 128);
 
 	menu->items[id] = input;
 	menus[menu->id] = menu;
+
+	return input;
 }
 
 struct Menu* createMenu(int x, int y, int outline, char* title) {
@@ -266,17 +278,22 @@ void drawMenus() {
 						}
 					}
 
-					renderMenuText(menu, item, largestY);
+					int ypos = (!txtItem->yPos) ? largestY : txtItem->yPos;
+					renderMenuText(menu, item, ypos);
 
 					largestX = MAX(largestX, txtSizeX);
-					largestY += MAX(largestY, ((txtItem->fontId+1)*8)+8);
+					largestY = MAX(largestY, ((txtItem->fontId+1)*8)+8+ypos);
 					break;
 				case CLICKABLE_BUTTON_ITEM:
 					struct ItemClickableButton* clickBtn = (struct ItemClickableButton*)item;
 
-					if (interaction && checkCursorOver(menu->x, menu->y+largestY,
-													   menu->x+clickBtn->xSize,
-													   menu->y+largestY+clickBtn->ySize))
+					int clickBtnXpos = menu->x+clickBtn->xPos;
+					int clickBtnYpos = menu->y;
+					ypos += (!clickBtn->yPos) ? largestY : clickBtn->yPos;
+
+					if (interaction && checkCursorOver(clickBtnXpos, clickBtnYpos,
+													   clickBtnXpos+clickBtn->xSize,
+													   clickBtnYpos+clickBtn->ySize))
 					{
 						color[0] = clickBtn->holdColor;
 						clickBtn->isClicking = 1;
@@ -293,15 +310,15 @@ void drawMenus() {
 						color[0] = clickBtn->color;
 					}
 
-					drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+largestY, clickBtn->xSize, clickBtn->ySize, -1);
+					drawtile(color, 1, 1, 1, 0x0, 0x0, clickBtnXpos, clickBtnYpos, clickBtn->xSize, clickBtn->ySize, -1);
 
 					int textlen = strlen(clickBtn->text);
-					drawText(menu->x+clickBtn->xSize/2-textlen*3, menu->y+largestY+clickBtn->ySize/2-4, 0x0, clickBtn->text);
+					drawText(clickBtnXpos+clickBtn->xSize/2-textlen*3, clickBtnYpos+clickBtn->ySize/2-4, 0x0, clickBtn->text);
 
-					drawSquare(menu->x, menu->y+largestY, menu->x+clickBtn->xSize, menu->y+largestY+clickBtn->ySize, 0x0);
+					drawSquare(clickBtnXpos, clickBtnYpos, clickBtnXpos+clickBtn->xSize, clickBtnYpos+clickBtn->ySize, 0x0);
 
-					largestX = MAX(largestX, clickBtn->xSize);
-					largestY += clickBtn->ySize+2;
+					largestX = MAX(largestX, clickBtn->xSize+clickBtn->xPos);
+					largestY = MAX(largestY, clickBtn->ySize+2+clickBtnYpos-menu->y);
 					break;
 				case MULTITEXT_ITEM:
 					struct ItemMultitext* multitext = (struct ItemMultitext*)item;
@@ -344,14 +361,18 @@ void drawMenus() {
 				case TEXTINPUT_ITEM:
 					struct ItemTextInput* input = (struct ItemTextInput*)item;
 
+					int inpXPos = input->xPos+menu->x;
+					int inpYPos = menu->y;
+					inpYPos += (!input->yPos) ? largestY : input->yPos;
+
 					color[0] = input->backgroundColor;
-					drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+largestY, input->xSize, input->ySize, -1);
+					drawtile(color, 1, 1, 1, 0x0, 0x0, inpXPos, inpYPos, input->xSize, input->ySize, -1);
 					int displayLen = input->xSize/6;
 					char textDisplay[displayLen];
 
-					if (interaction && checkCursorOver(menu->x, menu->y+largestY,
-													   menu->x+input->xSize,
-													   menu->y+largestY+input->ySize))
+					if (interaction && checkCursorOver(inpXPos, inpYPos,
+													   inpXPos+input->xSize,
+													   inpYPos+input->ySize))
 					{
 						activeInputItem = input;
 					}
@@ -372,9 +393,10 @@ void drawMenus() {
 						}
 					}
 
-					drawText(menu->x, menu->y+largestY+input->ySize/2-4, 0x505050, textDisplay);
+					drawText(inpXPos, inpYPos+input->ySize/2-4, 0x505050, textDisplay);
 
-					largestY += input->ySize+2;
+					largestX = MAX(largestX, input->xPos+input->xSize);
+					largestY = MAX(largestY, input->ySize+2+inpYPos-menu->y);
 			}
 		}
 
