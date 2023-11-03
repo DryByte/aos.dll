@@ -171,10 +171,6 @@ void hideAllMenus() {
 	}
 }
 
-void renderMenuText(struct Menu* menu, struct ItemText* item, int y) {
-	drawCustomFontText(menu->x, menu->y+y, item->color, item->fontId, item->text);
-}
-
 //returns 1 if an interaction happened
 int handleCursor() {
 	int mx;
@@ -278,11 +274,15 @@ void drawMenus() {
 						}
 					}
 
-					int ypos = (!txtItem->yPos) ? largestY : txtItem->yPos;
-					renderMenuText(menu, item, ypos);
 
-					largestX = MAX(largestX, txtSizeX);
-					largestY = MAX(largestY, ((txtItem->fontId+1)*8)+8+ypos);
+					int xpos = txtItem->xPos+menu->x;
+					int ypos = menu->y;
+					ypos += (!txtItem->yPos) ? largestY : txtItem->yPos;
+
+					drawCustomFontText(xpos, ypos, txtItem->color, txtItem->fontId, txtItem->text);
+
+					largestX = MAX(largestX, txtSizeX+txtItem->xPos);
+					largestY = MAX(largestY, ((txtItem->fontId+1)*8)+8+ypos-menu->y);
 					break;
 				case CLICKABLE_BUTTON_ITEM:
 					struct ItemClickableButton* clickBtn = (struct ItemClickableButton*)item;

@@ -52,6 +52,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	mfds->fixedSize = 0;
 
 	struct ItemText* itemfds = createText(mfds, 0, 0xffffff, "muito dasdasd");
+	itemfds->xPos = 10;
 	itemfds->yPos = 50;
 
 	struct ItemText* itemfds2 = createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
