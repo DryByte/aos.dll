@@ -267,6 +267,7 @@ void drawMenus() {
 				case TEXT_ITEM:
 					struct ItemText* txtItem = (struct ItemText*)item;
 					int txtSizeX = getCustomFontSize(txtItem->fontId, txtItem->text);
+					int txtSizeY = (txtItem->fontId+1)*8;
 					if (menu->fixedSize && txtSizeX > menu->xSize) {
 						int singleCharSize = txtSizeX/strlen(txtItem->text);
 						for (int i = txtSizeX; i > menu->xSize; i--) {
@@ -274,22 +275,40 @@ void drawMenus() {
 						}
 					}
 
-
-					int xpos = txtItem->xPos+menu->x;
+					int xpos = menu->x+txtItem->xPos;
 					int ypos = menu->y;
-					ypos += (!txtItem->yPos) ? largestY : txtItem->yPos;
+
+					if (txtItem->xPos < 0) {
+						xpos += menu->xSize;
+					}
+
+					if (txtItem->yPos >= 0) {
+						ypos += (!txtItem->yPos) ? largestY : txtItem->yPos;
+					} else {
+						ypos += menu->ySize+txtItem->yPos;
+					}
 
 					drawCustomFontText(xpos, ypos, txtItem->color, txtItem->fontId, txtItem->text);
-
-					largestX = MAX(largestX, txtSizeX+txtItem->xPos);
-					largestY = MAX(largestY, ((txtItem->fontId+1)*8)+8+ypos-menu->y);
+					if (txtItem->xPos >= 0)
+						largestX = MAX(largestX, txtSizeX+txtItem->xPos);
+					if(txtItem->yPos >= 0)
+						largestY = MAX(largestY, txtSizeY+8+ypos-menu->y);
 					break;
 				case CLICKABLE_BUTTON_ITEM:
 					struct ItemClickableButton* clickBtn = (struct ItemClickableButton*)item;
 
 					int clickBtnXpos = menu->x+clickBtn->xPos;
 					int clickBtnYpos = menu->y;
-					ypos += (!clickBtn->yPos) ? largestY : clickBtn->yPos;
+
+					if (clickBtn->xPos < 0) {
+						clickBtnXpos += menu->xSize;
+					}
+
+					if (clickBtn->yPos >= 0) {
+						clickBtnYpos += (!clickBtn->yPos) ? largestY : clickBtn->yPos;
+					} else {
+						clickBtnYpos += menu->ySize+clickBtn->yPos;
+					}
 
 					if (interaction && checkCursorOver(clickBtnXpos, clickBtnYpos,
 													   clickBtnXpos+clickBtn->xSize,
@@ -317,8 +336,11 @@ void drawMenus() {
 
 					drawSquare(clickBtnXpos, clickBtnYpos, clickBtnXpos+clickBtn->xSize, clickBtnYpos+clickBtn->ySize, 0x0);
 
-					largestX = MAX(largestX, clickBtn->xSize+clickBtn->xPos);
-					largestY = MAX(largestY, clickBtn->ySize+2+clickBtnYpos-menu->y);
+					if (clickBtn->xPos >= 0)
+						largestX = MAX(largestX, clickBtn->xSize+clickBtn->xPos);
+
+					if (clickBtn->yPos >= 0)
+						largestY = MAX(largestY, clickBtn->ySize+2+clickBtnYpos-menu->y);
 					break;
 				case MULTITEXT_ITEM:
 					struct ItemMultitext* multitext = (struct ItemMultitext*)item;
@@ -363,7 +385,16 @@ void drawMenus() {
 
 					int inpXPos = input->xPos+menu->x;
 					int inpYPos = menu->y;
-					inpYPos += (!input->yPos) ? largestY : input->yPos;
+
+					if (input->xPos < 0) {
+						inpXPos += menu->xSize;
+					}
+
+					if (input->yPos >= 0) {
+						inpYPos += (!input->yPos) ? largestY : input->yPos;
+					} else {
+						inpYPos += input->yPos+menu->ySize;
+					}
 
 					color[0] = input->backgroundColor;
 					drawtile(color, 1, 1, 1, 0x0, 0x0, inpXPos, inpYPos, input->xSize, input->ySize, -1);
@@ -395,8 +426,10 @@ void drawMenus() {
 
 					drawText(inpXPos, inpYPos+input->ySize/2-4, 0x505050, textDisplay);
 
-					largestX = MAX(largestX, input->xPos+input->xSize);
-					largestY = MAX(largestY, input->ySize+2+inpYPos-menu->y);
+					if (input->xPos >= 0)
+						largestX = MAX(largestX, input->xPos+input->xSize);
+					if (input->yPos >= 0)
+						largestY = MAX(largestY, input->ySize+2+inpYPos-menu->y);
 			}
 		}
 

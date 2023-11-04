@@ -52,17 +52,18 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	mfds->fixedSize = 0;
 
 	struct ItemText* itemfds = createText(mfds, 0, 0xffffff, "muito dasdasd");
-	itemfds->xPos = 10;
-	itemfds->yPos = 50;
+	itemfds->xPos = -50;
+	itemfds->yPos = -20;
 
 	struct ItemText* itemfds2 = createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
 	struct ItemClickableButton* btnfds = createClickableButton(mfds, "CLICK ME!", &testBtnEventHandler);
-	btnfds->yPos = 15;
+	btnfds->xPos = -90;
+	btnfds->yPos = -15;
 
 	createTextInput(mfds, 90, 15, 0xffffffff, "Type here ma friend");
 	struct ItemTextInput* inpfds = createTextInput(mfds, 90, 15, 0xffffffff, "here too");
-	inpfds->xPos = 250;
-	inpfds->yPos = 9;
+	inpfds->xPos = 15;
+	inpfds->yPos = -15;
 
 	struct Menu* LoggerMenu = createMenu(300, 200, 0, "Logger");
 	LoggerMultitext = createMultitext(LoggerMenu, 0xffffff);
