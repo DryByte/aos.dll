@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <time.h>
 
 #define MAX_MENU_ENTRIES 100
 #define MAX_MENU_ITEMS 255
@@ -49,6 +50,9 @@ struct ItemClickableButton
 	char text[32];
 	int xSize, ySize;
 	int xPos, yPos;
+	int isToolbar;
+	int interval;
+	time_t lastInteraction;
 	void (*event)();
 };
 
@@ -69,6 +73,7 @@ struct Menu {
 	int xSize, ySize;
 	int fixedSize;
 	int hidden;
+	int minimized;
 	int outlineColor;
 	int backgroundColor;
 

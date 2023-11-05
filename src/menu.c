@@ -38,6 +38,18 @@ int getNextAvailableItemId(struct Menu* menu) {
 	return i;
 }
 
+void minimizeButtonHandler(struct Menu* menu, struct ItemClickableButton* btn) {
+	if (!btn->isClicking)
+		return;
+
+	menu->minimized = !menu->minimized;
+	if (menu->minimized) {
+		strncpy(btn->text, "+", 32);
+	} else {
+		strncpy(btn->text, "-", 32);
+	}
+}
+
 struct ItemText* createText(struct Menu* menu, int fontid, int color, char* text) {
 	int id = getNextAvailableItemId(menu);
 
@@ -105,6 +117,9 @@ struct ItemClickableButton* createClickableButton(struct Menu* menu, char* text,
 	btn->ySize = 20;
 	btn->xPos = 0;
 	btn->yPos = 0;
+	btn->isToolbar = 0;
+	btn->interval = 0;
+	btn->lastInteraction = 0;
 	btn->event = func;
 	strncpy(btn->text, text, 32);
 
@@ -145,9 +160,19 @@ struct Menu* createMenu(int x, int y, int outline, char* title) {
 	menu->ySize = 100;
 	menu->fixedSize = 1;
 	menu->hidden = 1;
+	menu->minimized = 0;
 	strncpy(menu->title, title, 32);
 
 	menus[menuId] = menu;
+
+	struct ItemClickableButton* minbtn = createClickableButton(menu, "-", &minimizeButtonHandler);
+	minbtn->xSize = 8;
+	minbtn->ySize = 8;
+	minbtn->xPos = -10;
+	minbtn->yPos = 1;
+	minbtn->isToolbar = 1;
+	minbtn->interval = 1;
+
 	return menu;
 }
 
@@ -252,16 +277,20 @@ void drawMenus() {
 		// title background
 		long color[] = {0xe0000000};
 		drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y, menu->xSize, largestY, -1);
-
-		// content background
-		color[0] = 0xc0000000;
-		drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y, menu->xSize, menu->ySize, -1);
-
 		drawText(menu->x, menu->y, 0xffffff, menu->title);
+
+		if (!menu->minimized) {
+			// content background
+			color[0] = 0xc0000000;
+			drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+8, menu->xSize, menu->ySize-8, -1);
+		}
 
 		for (int itemId = 0; itemId < itemsLen; itemId++) {
 			void* item = menu->items[itemId];
 			int itemType = ((struct Item*)item)->type;
+
+			if (menu->minimized && itemType != CLICKABLE_BUTTON_ITEM)
+				continue;
 
 			switch(itemType) {
 				case TEXT_ITEM:
@@ -297,6 +326,9 @@ void drawMenus() {
 				case CLICKABLE_BUTTON_ITEM:
 					struct ItemClickableButton* clickBtn = (struct ItemClickableButton*)item;
 
+					if (menu->minimized && !clickBtn->isToolbar)
+						break;
+
 					int clickBtnXpos = menu->x+clickBtn->xPos;
 					int clickBtnYpos = menu->y;
 
@@ -314,9 +346,21 @@ void drawMenus() {
 													   clickBtnXpos+clickBtn->xSize,
 													   clickBtnYpos+clickBtn->ySize))
 					{
-						color[0] = clickBtn->holdColor;
-						clickBtn->isClicking = 1;
-						clickBtn->event(menu, clickBtn);
+						int interval = 0;
+
+						if (clickBtn->interval > 0) {
+							if (time(NULL)-clickBtn->lastInteraction < clickBtn->interval) {
+								interval = 1;
+							} else {
+								clickBtn->lastInteraction = time(NULL);
+							}
+						}
+
+						if (!interval) {
+							color[0] = clickBtn->holdColor;
+							clickBtn->isClicking = 1;
+							clickBtn->event(menu, clickBtn);
+						}
 					} else {
 						// i prefer this than setting value two times
 						// probably later i cna find something better
@@ -444,7 +488,9 @@ void drawMenus() {
 
 		// separator title | content
 		drawline2d(menu->x, menu->y+8, menu->x+largestX, menu->y+8, menu->outlineColor);
-		drawSquare(menu->x, menu->y, menu->x+largestX, menu->y+largestY, menu->outlineColor);
+
+		if (!menu->minimized)
+			drawSquare(menu->x, menu->y, menu->x+largestX, menu->y+largestY, menu->outlineColor);
 
 		if (interaction && checkCursorOver(menu->x, menu->y, menu->x+largestX, menu->y+8)) {
 			int xoffset, yoffset, bst;
