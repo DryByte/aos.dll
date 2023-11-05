@@ -50,6 +50,18 @@ void minimizeButtonHandler(struct Menu* menu, struct ItemClickableButton* btn) {
 	}
 }
 
+void pinButtonHandler(struct Menu* menu, struct ItemClickableButton* btn) {
+	if (!btn->isClicking)
+		return;
+
+	menu->pin = !menu->pin;
+	if (menu->pin) {
+		strncpy(btn->text, "X", 32);
+	} else {
+		strncpy(btn->text, " ", 32);
+	}
+}
+
 struct ItemText* createText(struct Menu* menu, int fontid, int color, char* text) {
 	int id = getNextAvailableItemId(menu);
 
@@ -160,6 +172,7 @@ struct Menu* createMenu(int x, int y, int outline, char* title) {
 	menu->ySize = 100;
 	menu->fixedSize = 1;
 	menu->hidden = 1;
+	menu->pin = 0;
 	menu->minimized = 0;
 	strncpy(menu->title, title, 32);
 
@@ -172,6 +185,14 @@ struct Menu* createMenu(int x, int y, int outline, char* title) {
 	minbtn->yPos = 1;
 	minbtn->isToolbar = 1;
 	minbtn->interval = 1;
+
+	struct ItemClickableButton* pinbtn = createClickableButton(menu, " ", &pinButtonHandler);
+	pinbtn->xSize = 8;
+	pinbtn->ySize = 8;
+	pinbtn->xPos = -20;
+	pinbtn->yPos = 1;
+	pinbtn->isToolbar = 1;
+	pinbtn->interval = 1;
 
 	return menu;
 }
@@ -266,7 +287,7 @@ void drawMenus() {
 
 	for (int menuId = 0; menuId < menusLen; menuId++) {
 		struct Menu* menu = (struct Menu*)menus[menuId];
-		if (menu->hidden)
+		if (menu->hidden && !menu->pin)
 			continue;
 
 		int itemsLen = getNextAvailableItemId(menu);

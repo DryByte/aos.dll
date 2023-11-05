@@ -74,6 +74,7 @@ struct Menu {
 	int fixedSize;
 	int hidden;
 	int minimized;
+	int pin;
 	int outlineColor;
 	int backgroundColor;
 
