@@ -66,7 +66,7 @@ struct ItemText* createText(struct Menu* menu, int fontid, int color, char* text
 	int id = getNextAvailableItemId(menu);
 
 	struct ItemText* txtItem = malloc(sizeof(struct ItemText)+32);
-	txtItem->type = 0;
+	txtItem->type = TEXT_ITEM;
 	txtItem->id = id;
 	txtItem->color = color;
 	txtItem->fontId = fontid;
@@ -104,7 +104,7 @@ struct ItemMultitext* createMultitext(struct Menu* menu, int color) {
 	int id = getNextAvailableItemId(menu);
 
 	struct ItemMultitext* multitextItem = malloc(sizeof(struct ItemMultitext));
-	multitextItem->type = 2;
+	multitextItem->type = MULTITEXT_ITEM;
 	multitextItem->id = id;
 	multitextItem->color = color;
 	multitextItem->currentPos = 0;
@@ -121,7 +121,7 @@ struct ItemClickableButton* createClickableButton(struct Menu* menu, char* text,
 	int id = getNextAvailableItemId(menu);
 
 	struct ItemClickableButton* btn = malloc(sizeof(struct ItemClickableButton) + 32);
-	btn->type = 1;
+	btn->type = CLICKABLE_BUTTON_ITEM;
 	btn->id = id;
 	btn->color = 0xffff0000;
 	btn->holdColor = 0xff00ff00;
@@ -145,7 +145,7 @@ struct ItemTextInput* createTextInput(struct Menu* menu, int xSize, int ySize, l
 	int id = getNextAvailableItemId(menu);
 
 	struct ItemTextInput* input = malloc(sizeof(struct ItemTextInput) + 256);
-	input->type = 3;
+	input->type = TEXTINPUT_ITEM;
 	input->id = id;
 	input->xSize = xSize;
 	input->ySize = ySize;
