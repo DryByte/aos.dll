@@ -8,7 +8,8 @@ enum itemTypes {
 	TEXT_ITEM,
 	CLICKABLE_BUTTON_ITEM,
 	MULTITEXT_ITEM,
-	TEXTINPUT_ITEM
+	TEXTINPUT_ITEM,
+	SLIDE_ITEM
 };
 
 struct Item {
@@ -67,6 +68,20 @@ struct ItemTextInput
 	int xPos, yPos;
 };
 
+struct ItemSlide {
+	uint8_t type;
+	int id;
+	int xSize, ySize;
+	int xPos, yPos;
+	int sliderSize;
+	int maxValue;
+	int minValue;
+	int showStatus;
+	long sliderColor;
+	long backgroundColor;
+	int* interactInt;
+};
+
 struct Menu {
 	int id;
 	int x, y;
@@ -90,6 +105,7 @@ void addNewText(struct ItemMultitext* multitext, char* text);
 struct ItemMultitext* createMultitext(struct Menu* menu, int color);
 struct ItemClickableButton* createClickableButton(struct Menu* menu, char* text, void (*func)());
 struct ItemTextInput* createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundColor, char* placeholder);
+struct ItemSlide* createSlide(struct Menu* menu, int minValue, int maxValue, int* interact);
 void handleKeyboard();
 struct Menu* createMenu(int x, int y, int outline, char* title);
 void drawMenus();

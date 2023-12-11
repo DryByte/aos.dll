@@ -160,6 +160,30 @@ struct ItemTextInput* createTextInput(struct Menu* menu, int xSize, int ySize, l
 	return input;
 }
 
+struct ItemSlide* createSlide(struct Menu* menu, int minValue, int maxValue, int* interact) {
+	int id = getNextAvailableItemId(menu);
+
+	struct ItemSlide* slide = malloc(sizeof(struct ItemSlide));
+	slide->type = SLIDE_ITEM;
+	slide->id = id;
+	slide->xSize = 90;
+	slide->ySize = 30;
+	slide->xPos = 0;
+	slide->yPos = 0;
+	slide->sliderSize = 10;
+	slide->sliderColor = 0xff858585;
+	slide->backgroundColor = 0x00;
+	slide->maxValue = maxValue;
+	slide->minValue = minValue;
+	slide->showStatus = 0;
+	slide->interactInt = interact;
+
+	menu->items[id] = slide;
+	menus[menu->id] = menu;
+
+	return slide;
+}
+
 struct Menu* createMenu(int x, int y, int outline, char* title) {
 	int menuId = getNextAvailableMenuId();
 	struct Menu* menu = malloc(sizeof(struct Menu)+32);	
@@ -446,55 +470,127 @@ void drawMenus() {
 					}
 					break;
 				case TEXTINPUT_ITEM:
-					struct ItemTextInput* input = (struct ItemTextInput*)item;
-
-					int inpXPos = input->xPos+menu->x;
-					int inpYPos = menu->y;
-
-					if (input->xPos < 0) {
-						inpXPos += menu->xSize;
-					}
-
-					if (input->yPos >= 0) {
-						inpYPos += (!input->yPos) ? largestY : input->yPos;
-					} else {
-						inpYPos += input->yPos+menu->ySize;
-					}
-
-					color[0] = input->backgroundColor;
-					drawtile(color, 1, 1, 1, 0x0, 0x0, inpXPos, inpYPos, input->xSize, input->ySize, -1);
-					int displayLen = input->xSize/6;
-					char textDisplay[displayLen];
-
-					if (interaction && checkCursorOver(inpXPos, inpYPos,
-													   inpXPos+input->xSize,
-													   inpYPos+input->ySize))
 					{
-						activeInputItem = input;
-					}
+						struct ItemTextInput* input = (struct ItemTextInput*)item;
 
-					if (activeInputItem && activeInputItem->id == input->id) {
-						int inputlen = strlen(input->input);
+						int inpXPos = input->xPos+menu->x;
+						int inpYPos = menu->y;
 
-						if (inputlen < displayLen) {
-							snprintf(textDisplay, displayLen, "%s_", input->input);
-						} else {
-							snprintf(textDisplay, displayLen, "%s_", &input->input[inputlen-displayLen]);
-						}	
-					} else {
-						if (input->input[0]) {
-							strncpy(textDisplay, input->input, displayLen);
-						} else {
-							strncpy(textDisplay, input->placeholder, displayLen);
+						if (input->xPos < 0) {
+							inpXPos += menu->xSize;
 						}
+
+						if (input->yPos >= 0) {
+							inpYPos += (!input->yPos) ? largestY : input->yPos;
+						} else {
+							inpYPos += input->yPos+menu->ySize;
+						}
+
+						color[0] = input->backgroundColor;
+						drawtile(color, 1, 1, 1, 0x0, 0x0, inpXPos, inpYPos, input->xSize, input->ySize, -1);
+						int displayLen = input->xSize/6;
+						char textDisplay[displayLen];
+
+						if (interaction && checkCursorOver(inpXPos, inpYPos,
+														   inpXPos+input->xSize,
+														   inpYPos+input->ySize))
+						{
+							activeInputItem = input;
+						}
+
+						if (activeInputItem && activeInputItem->id == input->id) {
+							int inputlen = strlen(input->input);
+
+							if (inputlen < displayLen) {
+								snprintf(textDisplay, displayLen, "%s_", input->input);
+							} else {
+								snprintf(textDisplay, displayLen, "%s_", &input->input[inputlen-displayLen]);
+							}
+						} else {
+							if (input->input[0]) {
+								strncpy(textDisplay, input->input, displayLen);
+							} else {
+								strncpy(textDisplay, input->placeholder, displayLen);
+							}
+						}
+
+						drawText(inpXPos, inpYPos+input->ySize/2-4, 0x505050, textDisplay);
+
+						if (input->xPos >= 0)
+							largestX = MAX(largestX, input->xPos+input->xSize);
+						if (input->yPos >= 0)
+							largestY = MAX(largestY, input->ySize+2+inpYPos-menu->y);
+					}
+					break;
+				case SLIDE_ITEM:
+					struct ItemSlide* slide = (struct ItemSlide*)item;
+
+					int slideXPos = slide->xPos+menu->x;
+					int slideYPos = slide->yPos+menu->y;
+
+					color[0] = slide->backgroundColor;
+					drawtile(color, 1, 1, 1, 0x0, 0x0, slideXPos, slideYPos, slide->xSize, slide->ySize, -1);
+
+					int sliderPosX = slideXPos;
+					int sliderPosY = slideYPos;
+					int sliderSizeX = slide->xSize;
+					int sliderSizeY = slide->ySize;
+
+					int slideToX = 0;
+					int slideToY = 0;
+					int _fds = 0;
+					if (interaction && checkCursorOver(slideXPos, slideYPos, slideXPos+slide->xSize, slideYPos+slide->ySize)) {
+						int porc = 1;
+						int value = 0;
+						if (slide->xSize >= slide->ySize) {
+							int offset = mouseXPos-slideXPos;
+							porc = offset*100/slide->xSize;
+						} else {
+							int offset = mouseYPos-slideYPos;
+							porc = 100-offset*100/slide->ySize;
+						}
+
+						value += porc*(slide->maxValue-slide->minValue)/100+slide->minValue;
+						*slide->interactInt = value;
+						getmousechange(&slideToX, &slideToY, &_fds);
 					}
 
-					drawText(inpXPos, inpYPos+input->ySize/2-4, 0x505050, textDisplay);
+					int pos = (*slide->interactInt-slide->minValue)*100.0/(slide->maxValue-slide->minValue);
+					if (slide->xSize >= slide->ySize) {
+						sliderSizeX = slide->sliderSize;
 
-					if (input->xPos >= 0)
-						largestX = MAX(largestX, input->xPos+input->xSize);
-					if (input->yPos >= 0)
-						largestY = MAX(largestY, input->ySize+2+inpYPos-menu->y);
+						if (slideToX > 0 && *slide->interactInt < slide->maxValue)
+							*slide->interactInt+=1;
+						else if(slideToX < 0 && *slide->interactInt > slide->minValue)
+							*slide->interactInt-=1;
+
+						sliderPosX += (int)((slide->xSize-sliderSizeX)*pos/100.0);
+						sliderPosY = slideYPos;
+					} else {
+						sliderSizeY = slide->sliderSize;
+
+						if (slideToY < 0 && *slide->interactInt < slide->maxValue)
+							*slide->interactInt+=1;
+						else if(slideToY > 0 && *slide->interactInt > slide->minValue)
+							*slide->interactInt-=1;
+
+						sliderPosY -= (int)((slide->ySize-sliderSizeY)*pos/100.0);
+						sliderPosY += slide->ySize-sliderSizeY;
+
+						sliderPosX = slideXPos;
+					}
+
+					color[0] = slide->sliderColor;
+					drawtile(color, 1, 1, 1, 0x0, 0x0, sliderPosX, sliderPosY, sliderSizeX, sliderSizeY, -1);
+
+					if (slide->showStatus) {
+						char cool[10];
+						sprintf(cool, "%i", *slide->interactInt);
+						drawText(slideXPos, slideYPos+slide->ySize+6, 0xff0000, cool);
+					}
+					drawSquare(slideXPos, slideYPos, slideXPos+slide->xSize, slideYPos+slide->ySize, 0x0);
+
+					break;
 			}
 		}
 

@@ -51,6 +51,23 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	struct Menu* mfds = createMenu(150, 20, 0, "Just a test");
 	mfds->fixedSize = 0;
 
+	struct Menu* meirrita = createMenu(400, 30, 0, "Sliders menu");
+	meirrita->fixedSize = 0;
+
+	int randomintfds = 35;
+	struct ItemSlide* slidefds = createSlide(meirrita, -35, 150, &randomintfds);
+	slidefds->xPos = 5;
+	slidefds->yPos = 10;
+	slidefds->xSize = 15;
+	slidefds->ySize = 50;
+	slidefds->showStatus = 1;
+
+	struct ItemSlide* slidehp = createSlide(meirrita, 0, 255, (clientBase+0x7ceb4+(*(int*)(clientBase+0x13b1cf0))*0x3a8));
+	slidehp->xPos = 25;
+	slidehp->yPos = 15;
+	slidehp->xSize = 50;
+	slidehp->ySize = 15;
+
 	struct ItemText* itemfds = createText(mfds, 0, 0xffffff, "muito dasdasd");
 	itemfds->xPos = -50;
 	itemfds->yPos = -20;
