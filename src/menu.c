@@ -340,12 +340,18 @@ void drawMenus() {
 			switch(itemType) {
 				case TEXT_ITEM:
 					struct ItemText* txtItem = (struct ItemText*)item;
-					int txtSizeX = getCustomFontSize(txtItem->fontId, txtItem->text);
-					int txtSizeY = (txtItem->fontId+1)*8;
-					if (menu->fixedSize && txtSizeX > menu->xSize) {
-						int singleCharSize = txtSizeX/strlen(txtItem->text);
-						for (int i = txtSizeX; i > menu->xSize; i--) {
-							txtItem->text[i/singleCharSize] = '\0';
+
+					int txtSizeX = 6;
+					int txtSizeY = 8;
+
+					if (txtItem->fontId >= 0) {
+						txtSizeX = getCustomFontSize(txtItem->fontId, txtItem->text);
+						txtSizeY = (txtItem->fontId+1)*8;
+						if (menu->fixedSize && txtSizeX > menu->xSize) {
+							int singleCharSize = txtSizeX/strlen(txtItem->text);
+							for (int i = txtSizeX; i > menu->xSize; i--) {
+								txtItem->text[i/singleCharSize] = '\0';
+							}
 						}
 					}
 
@@ -362,7 +368,11 @@ void drawMenus() {
 						ypos += menu->ySize+txtItem->yPos;
 					}
 
-					drawCustomFontText(xpos, ypos, txtItem->color, txtItem->fontId, txtItem->text);
+					if (txtItem->fontId >= 0) {
+						drawCustomFontText(xpos, ypos, txtItem->color, txtItem->fontId, txtItem->text);
+					} else {
+						drawText(xpos, ypos, txtItem->color, txtItem->text);
+					}
 					if (txtItem->xPos >= 0)
 						largestX = MAX(largestX, txtSizeX+txtItem->xPos);
 					if(txtItem->yPos >= 0)

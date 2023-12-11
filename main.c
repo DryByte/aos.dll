@@ -62,11 +62,17 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	slidefds->ySize = 50;
 	slidefds->showStatus = 1;
 
+	struct ItemText* hptxt = createText(meirrita, -1, 0x30ff30, "Change your health:");
+	hptxt->xPos = 25;
+	hptxt->yPos = 10;
+
 	struct ItemSlide* slidehp = createSlide(meirrita, 0, 255, (clientBase+0x7ceb4+(*(int*)(clientBase+0x13b1cf0))*0x3a8));
 	slidehp->xPos = 25;
-	slidehp->yPos = 15;
+	slidehp->yPos = 20;
 	slidehp->xSize = 50;
 	slidehp->ySize = 15;
+	slidehp->sliderColor = 0xffff2020;
+	slidehp->backgroundColor = 0x3030ff00;
 
 	struct ItemText* itemfds = createText(mfds, 0, 0xffffff, "muito dasdasd");
 	itemfds->xPos = -50;
