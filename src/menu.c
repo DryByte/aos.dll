@@ -444,8 +444,16 @@ void drawMenus() {
 				case MULTITEXT_ITEM:
 					struct ItemMultitext* multitext = (struct ItemMultitext*)item;
 					struct MultitextNode* lastNode = multitext->lastNode;
+					int currentNodeId = 0; // reverse
 
 					for (int i = 0; i < 5; i++) {
+						if (multitext->currentPos > currentNodeId && lastNode->previous != 0) {
+							lastNode = lastNode->previous;
+							currentNodeId += 1;
+							i = 0;
+							continue;
+						}
+
 						int txtSizeX = strlen(lastNode->text)*6; // drawText uses 6x8
 
 						if (menu->fixedSize && txtSizeX > menu->xSize) {

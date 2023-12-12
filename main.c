@@ -111,6 +111,11 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 				isMenuHidden = 1;
 				hideAllMenus();
 			}
+		} else if (GetAsyncKeyState(VK_NEXT)) {
+			LoggerMultitext->currentPos+=1;
+		} else if (GetAsyncKeyState(VK_PRIOR)) {
+			if (LoggerMultitext->currentPos > 0)
+				LoggerMultitext->currentPos-=1;
 		}
 
 		Sleep(250);
