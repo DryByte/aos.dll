@@ -108,6 +108,7 @@ struct ItemMultitext* createMultitext(struct Menu* menu, int color) {
 	multitextItem->id = id;
 	multitextItem->color = color;
 	multitextItem->currentPos = 0;
+	multitextItem->selected = 0;
 	multitextItem->firstNode = 0;
 	multitextItem->lastNode = 0;
 
@@ -455,6 +456,17 @@ void drawMenus() {
 						}
 
 						int txtSizeX = strlen(lastNode->text)*6; // drawText uses 6x8
+
+						if (interaction && checkCursorOver(menu->x, menu->y+largestY, menu->x+txtSizeX, menu->y+largestY+10)) {
+							multitext->selected = lastNode;
+						}
+
+						if (multitext->selected) {
+							if (multitext->selected->next == lastNode->next && multitext->selected->previous == lastNode->previous) {
+								color[0] = 0xff606060;
+								drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+largestY, menu->xSize, 8, -1);
+							}
+						}
 
 						if (menu->fixedSize && txtSizeX > menu->xSize) {
 							char copyTxtNode[128];

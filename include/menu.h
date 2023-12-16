@@ -37,6 +37,7 @@ struct ItemMultitext {
 	int color;
 
 	int currentPos;
+	struct MultitextNode* selected;
 	struct MultitextNode* firstNode;
 	struct MultitextNode* lastNode;
 };
