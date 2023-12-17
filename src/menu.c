@@ -490,14 +490,15 @@ void drawMenus() {
 						if (txtSizeX > mtxSize) {
 							char copyTxtNode[128];
 							int characterCopy = 0;
+							memset(copyTxtNode, 0, sizeof copyTxtNode);
 
 							for (int characterNode = 0; characterNode < txtSizeX/6; characterNode++) {
 								int copyTxtNodeLen = strlen(copyTxtNode)*6;
 								if (copyTxtNodeLen+2 > mtxSize) {
 									drawText(mtxPos, mtyPos+i*8, multitext->color, copyTxtNode);
-									i+=1;
 									memset(copyTxtNode, 0, sizeof copyTxtNode);
 									characterCopy = 0;
+									i+=1;
 								}
 
 								copyTxtNode[characterCopy] = lastNode->text[characterNode];
