@@ -35,6 +35,8 @@ struct ItemMultitext {
 	uint8_t type;
 	int id;
 	int color;
+	int xSize, ySize;
+	int xPos, yPos;
 
 	int currentPos;
 	struct MultitextNode* selected;

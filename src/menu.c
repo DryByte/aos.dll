@@ -107,6 +107,10 @@ struct ItemMultitext* createMultitext(struct Menu* menu, int color) {
 	multitextItem->type = MULTITEXT_ITEM;
 	multitextItem->id = id;
 	multitextItem->color = color;
+	multitextItem->xSize = 0;
+	multitextItem->ySize = 0;
+	multitextItem->xPos = 0;
+	multitextItem->yPos = 0;
 	multitextItem->currentPos = 0;
 	multitextItem->selected = 0;
 	multitextItem->firstNode = 0;
@@ -445,9 +449,24 @@ void drawMenus() {
 				case MULTITEXT_ITEM:
 					struct ItemMultitext* multitext = (struct ItemMultitext*)item;
 					struct MultitextNode* lastNode = multitext->lastNode;
-					int currentNodeId = 0; // reverse
 
-					for (int i = 0; i < 5; i++) {
+					int mtxPos = multitext->xPos+menu->x;
+					int mtyPos = multitext->yPos+menu->y+10; // this +10 is bc menu bar
+
+					if (mtyPos == 0)
+						mtyPos += largestY;
+
+					int mtxSize = multitext->xSize;
+					int mtySize = multitext->ySize;
+
+					if (mtxSize <= 0)
+						mtxSize = menu->xSize;
+					if (mtySize <= 0)
+						mtySize = menu->ySize-10;
+
+					int availableLines = mtySize/8;
+					int currentNodeId = 0; // reverse
+					for (int i = 0; i < availableLines; i++) {
 						if (multitext->currentPos > currentNodeId && lastNode->previous != 0) {
 							lastNode = lastNode->previous;
 							currentNodeId += 1;
@@ -457,26 +476,26 @@ void drawMenus() {
 
 						int txtSizeX = strlen(lastNode->text)*6; // drawText uses 6x8
 
-						if (interaction && checkCursorOver(menu->x, menu->y+largestY, menu->x+txtSizeX, menu->y+largestY+10)) {
+						if (interaction && checkCursorOver(mtxPos, mtyPos+i*8, mtxPos+mtxSize, mtyPos+i*10)) {
 							multitext->selected = lastNode;
 						}
 
 						if (multitext->selected) {
 							if (multitext->selected->next == lastNode->next && multitext->selected->previous == lastNode->previous) {
 								color[0] = 0xff606060;
-								drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+largestY, menu->xSize, 8, -1);
+								drawtile(color, 1, 1, 1, 0x0, 0x0, mtxPos, mtyPos+i*8, mtxSize, 8, -1);
 							}
 						}
 
-						if (menu->fixedSize && txtSizeX > menu->xSize) {
+						if (txtSizeX > mtxSize) {
 							char copyTxtNode[128];
 							int characterCopy = 0;
 
 							for (int characterNode = 0; characterNode < txtSizeX/6; characterNode++) {
 								int copyTxtNodeLen = strlen(copyTxtNode)*6;
-								if (copyTxtNodeLen+2 > menu->xSize) {
-									drawText(menu->x, menu->y+largestY, multitext->color, copyTxtNode);
-									largestY += 8;
+								if (copyTxtNodeLen+2 > mtxSize) {
+									drawText(mtxPos, mtyPos+i*8, multitext->color, copyTxtNode);
+									i+=1;
 									memset(copyTxtNode, 0, sizeof copyTxtNode);
 									characterCopy = 0;
 								}
@@ -485,13 +504,13 @@ void drawMenus() {
 								characterCopy+=1;
 							}
 
-							drawText(menu->x, menu->y+largestY, multitext->color, copyTxtNode);
+							drawText(mtxPos, mtyPos+i*8, multitext->color, copyTxtNode);
 						} else {
-							drawText(menu->x, menu->y+largestY, multitext->color, lastNode->text);
+							drawText(mtxPos, mtyPos+i*8, multitext->color, lastNode->text);
 						}
 
-						largestX = MAX(largestX, txtSizeX);
-						largestY += 10;
+						largestX = MAX(largestX, mtxSize);
+						largestY += mtySize;
 
 						if (lastNode->previous == 0)
 							break;
