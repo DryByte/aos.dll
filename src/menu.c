@@ -307,6 +307,34 @@ void drawCursor() {
 	drawtile(color, 1, 1, 1, 0x0, 0x0, mouseXPos, mouseYPos, 15, 15, -1);
 }
 
+int wordLength(int wordpos, int maxWordlen, char* buffer) {
+	int len = 0;
+
+	for (; len < maxWordlen; len++) {
+		if (buffer[wordpos+len] == ' ' || buffer[wordpos+len] == '\0')
+			break;
+	}
+
+	return len;
+}
+
+int itsNewLineTime(int position, int currentLinePos, int maxLine, char* buffer) {
+	int newline = 0;
+
+	for (int i = currentLinePos; i < maxLine; i++) {
+		if (buffer[position] == ' ' || buffer[position] == '\0')
+			break;
+
+		position++;
+		if (i+1 >= maxLine) {
+			newline = 1;
+			break;
+		}
+	}
+
+	return newline;
+}
+
 void drawMenus() {
 	int menusLen = getNextAvailableMenuId();
 
@@ -475,34 +503,72 @@ void drawMenus() {
 						}
 
 						int txtSizeX = strlen(lastNode->text)*6; // drawText uses 6x8
+						int txtLines = (int)(strlen(lastNode->text)*6/(float)mtxSize+1);
 
-						if (interaction && checkCursorOver(mtxPos, mtyPos+i*8, mtxPos+mtxSize, mtyPos+i*10)) {
+						if (interaction && checkCursorOver(mtxPos, mtyPos+i*8, mtxPos+mtxSize, mtyPos+i*10+txtLines*8)) {
 							multitext->selected = lastNode;
 						}
 
 						if (multitext->selected) {
 							if (multitext->selected->next == lastNode->next && multitext->selected->previous == lastNode->previous) {
 								color[0] = 0xff606060;
-								drawtile(color, 1, 1, 1, 0x0, 0x0, mtxPos, mtyPos+i*8, mtxSize, 8, -1);
+								drawtile(color, 1, 1, 1, 0x0, 0x0, mtxPos, mtyPos+i*8, mtxSize, txtLines*8, -1);
 							}
 						}
 
 						if (txtSizeX > mtxSize) {
 							char copyTxtNode[128];
-							int characterCopy = 0;
-							memset(copyTxtNode, 0, sizeof copyTxtNode);
+							int characterInLine = 0;
+							int charsPerLine = mtxSize/6;
+							memset(copyTxtNode, 0, 128);
 
 							for (int characterNode = 0; characterNode < txtSizeX/6; characterNode++) {
-								int copyTxtNodeLen = strlen(copyTxtNode)*6;
-								if (copyTxtNodeLen+2 > mtxSize) {
+								if (lastNode->text[characterNode] == ' ') {
+									copyTxtNode[characterInLine] = ' ';
+									characterInLine += 1;
+
+									if (characterInLine >= charsPerLine) {
+										characterInLine = 0;
+										i+=1;
+									}
+
+									continue;
+								}
+
+								int wordlen = wordLength(characterNode, 128, lastNode->text);
+								if (wordlen > charsPerLine) {
+									int maxlines = (wordlen+characterInLine)/charsPerLine;
+									int lastlineChars = abs(wordlen-charsPerLine*maxlines);
+									int copychars = charsPerLine;
+
+									for (int w = 0; w < maxlines; w++) {
+										if (characterInLine != 0) {
+											copychars = charsPerLine-characterInLine;
+										} else {
+											copychars = charsPerLine;
+										}
+
+										strncpy(&copyTxtNode[characterInLine], lastNode->text+characterNode, copychars);
+										drawText(mtxPos, mtyPos+i*8, multitext->color, copyTxtNode);
+										memset(copyTxtNode, 0, sizeof copyTxtNode);
+										i+=1;
+
+										characterNode+=copychars;
+										characterInLine = 0;
+									}
+
+									wordlen = lastlineChars;
+
+								} else if(itsNewLineTime(characterNode, characterInLine, charsPerLine, lastNode->text)) {
 									drawText(mtxPos, mtyPos+i*8, multitext->color, copyTxtNode);
 									memset(copyTxtNode, 0, sizeof copyTxtNode);
-									characterCopy = 0;
+									characterInLine = 0;
 									i+=1;
 								}
 
-								copyTxtNode[characterCopy] = lastNode->text[characterNode];
-								characterCopy+=1;
+								strncpy(&copyTxtNode[characterInLine], lastNode->text+characterNode, wordlen);
+								characterInLine+=wordlen;
+								characterNode+=wordlen-1;
 							}
 
 							drawText(mtxPos, mtyPos+i*8, multitext->color, copyTxtNode);
