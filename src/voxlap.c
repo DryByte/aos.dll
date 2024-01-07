@@ -100,3 +100,10 @@ long keyread() {
 	*keybufr = (*keybufr+1)&255;
 	return tores;
 }
+
+struct aoskv6data* loadkv6(char* filename) {
+	asm volatile(
+		"mov %0, %%eax\n\t"
+		"call *%1"
+	:: "r"(filename), "r"(clientBase+0x257e0));
+}
