@@ -18,8 +18,9 @@ struct kv6voxtype { long col; unsigned short z; char vis, dir; };
 // this is a custom version of the kv6 data created by ken
 struct aoskv6data
 {
-	long leng, xsiz, ysiz, zsiz;
-	float xpiv, ypix, zpiv;
+	long leng, xsiz, ysiz;
+	float xpiv, ypiv, zpiv;
+	unsigned long numvoxs;
 	struct kv6voxtype *vox;
 	unsigned long *xlen;
 	unsigned short *ylen;
