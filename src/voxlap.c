@@ -1,4 +1,6 @@
 #include <voxlap.h>
+#include <stdio.h>
+#include <io.h>
 
 void drawline2d(int x1, int y1, int x2, int y2, int color) {
 	asm volatile(
@@ -106,4 +108,50 @@ struct aoskv6data* loadkv6(char* filename) {
 		"mov %0, %%eax\n\t"
 		"call *%1"
 	:: "r"(filename), "r"(clientBase+0x257e0));
+}
+
+// this comes from kplib, but its bundledwith voxlap
+// the original function doesn't work, i guess its because
+// fileno function needs to be called with a file descriptor
+// opened by the process, not by the dll... So we just rewrite
+// what that function does ;)
+void kpzload(char* filepath, long *pic, int xsiz, int ysiz) {
+	FILE* fp = fopen(filepath, "rb");
+
+	if (!fp)
+		return;
+
+	if (pic)
+		free(pic);
+
+
+	int desc = _fileno(fp);
+	long len = _filelength(desc);
+
+	int* coolbuf = malloc(len);
+	fread(coolbuf, len, 1, fp);
+	fclose(fp);
+
+	long* loadbuf = malloc(xsiz*4*ysiz);
+	*pic = loadbuf;
+
+	int nsize = xsiz*4;
+
+	int result = 0;
+	asm volatile(
+		"push %5\n\t"
+		"push %4\n\t"
+		"push %3\n\t"
+		"push %2\n\t"
+		"push %1\n\t"
+		"call *%6\n\t"
+		"mov %%eax, %0"
+	: "=r" (result) : "g" (coolbuf), "g" (loadbuf), "g" (nsize), "g"(xsiz), "g"(ysiz), "r" (clientBase+0x26fd0));
+
+	free(coolbuf);
+
+	if (result < 0) {
+		free(loadbuf);
+		*pic = 0;
+	}
 }
