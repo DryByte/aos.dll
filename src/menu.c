@@ -15,6 +15,8 @@ int mouseXPos = 0;
 int mouseYPos = 0;
 int showCursor = 0;
 
+struct Menu* draggingMenu = 0;
+
 // only one can be active per time
 struct ItemTextInput* activeInputItem = 0;
 
@@ -725,7 +727,15 @@ void drawMenus() {
 		if (!menu->minimized)
 			drawSquare(menu->x, menu->y, menu->x+largestX, menu->y+largestY, menu->outlineColor);
 
+		if (draggingMenu == menu && !interaction) {
+			draggingMenu = 0;
+		}
+
 		if (interaction && checkCursorOver(menu->x, menu->y, menu->x+largestX, menu->y+8)) {
+			draggingMenu = menu;
+		}
+
+		if (draggingMenu == menu) {
 			int xoffset, yoffset, bst;
 			getmousechange(&xoffset, &yoffset, &bst);
 			menu->x += xoffset;
