@@ -10,6 +10,7 @@
 #include <inputs.h>
 #include <voxlap.h>
 #include <aos_utils.h>
+#include <modloader.h>
 
 HANDLE clientBase;
 struct ItemMultitext* LoggerMultitext;
@@ -96,6 +97,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	addNewText(LoggerMultitext, "another item kekw");
 	addNewText(LoggerMultitext, "one more");
 
+	initmodloader();
 	loadAoSConfig();
 	struct WindowSize fds = getConfigWindowSize();
 	printf("%i\n", fds.width);
@@ -106,9 +108,6 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	int isMenuHidden = 0;
 	while (1) {
 		if (GetAsyncKeyState(VK_MENU)) {
-			struct aoskv6data* kv6 = loadkv6("./kv6/playerleg.kv6");
-			*(int*)(clientBase+0x13cf840+SEMI) = kv6;
-
 			if (isMenuHidden) {
 				isMenuHidden = 0;
 				showAllMenus();
