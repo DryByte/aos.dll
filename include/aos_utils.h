@@ -48,3 +48,7 @@ enum KV6TYPE {
 
 void loadkv6Files();
 void loadworldObjects();
+void loadPlayerTeamSkin(int playerId);
+void loadPlayerWeaponSkin(int playerId);
+void loadplayerSkins();
+void loadimageFiles();
