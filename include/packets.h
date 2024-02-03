@@ -5,6 +5,16 @@
 
 extern HANDLE clientBase;
 
+struct __attribute__((__packed__)) packetBlockAction
+{
+	uint8_t packetId;
+	uint8_t playerId;
+	uint8_t actionType;
+	int xPos;
+	int yPos;
+	int zPos;
+};
+
 struct packetMsg
 {
 	uint8_t packetId;

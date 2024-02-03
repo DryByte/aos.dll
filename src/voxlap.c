@@ -155,3 +155,21 @@ void kpzload(char* filepath, long *pic, int xsiz, int ysiz) {
 		*pic = 0;
 	}
 }
+
+// returns 0 if hidden or air
+// or returns memory address for cube
+long getcube(long x, long y, long z) {
+	long ret = 0;
+
+	asm volatile(
+		"mov %4, %%edi\n\t"
+		"mov %1, %%ecx\n\t"
+		"mov %2, %%eax\n\t"
+		"push %3\n\t"
+		"call *%%edi\n\t"
+		"mov %%eax, %0\n\t"
+		"add $0x4, %%esp"
+		: "=r" (ret) : "g" (x), "g" (y), "g" (z), "r" (clientBase+0x1be20));
+
+	return ret;
+}

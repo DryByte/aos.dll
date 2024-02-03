@@ -1,4 +1,5 @@
 #include <packets.h>
+#include <voxlap.h>
 
 ENetPacket* PacketBuffer;
 ENetPeer* peer;
@@ -84,7 +85,24 @@ __declspec(naked) void packetHandler() {
 	if (PacketBuffer->data[0] != 2)
 		printf("%i\n", PacketBuffer->data[0]);
 
+	// if enabled it will jump to the end of the aos packet handler
+	// so we can "override" behaviours
+	int skip = 0;
 	switch(PacketBuffer->data[0]) {
+		case 13:
+			struct packetBlockAction* blockAction = (struct packetBlockAction*)PacketBuffer->data;
+
+			if (blockAction->actionType == 0) {
+				long block = getcube(blockAction->xPos, blockAction->yPos, blockAction->zPos);
+
+				if (block != 0) {
+					long color = *(long*)(clientBase+0x7ce8c+(blockAction->playerId*936));
+
+					*(long*)block = color|0x7f000000;
+					skip = 1;
+				}
+			}
+			break;
 		case 17:
 			uint8_t* buf = (uint8_t*)malloc(PacketBuffer->dataLength*sizeof(uint8_t));
 			memcpy(buf, PacketBuffer->data, PacketBuffer->dataLength*sizeof(uint8_t));
@@ -109,11 +127,15 @@ __declspec(naked) void packetHandler() {
 			break;
 	}
 
+	HANDLE leaveoffset = clientBase+0x343ed;
+	if (skip == 1)
+		leaveoffset = clientBase+0x355f2;
+
 	asm volatile(
 		"movl %0, %%esi\n\t"
 		"mov %1, %%ecx\n\t"
 		"movl 8(%%esi), %%edx\n\t"
 		"movb (%%edx), %%al\n\t"
 		"sub %%ebx, %%ebx\n\t" //fix register mess issue with pointers
-		"jmp *%%ecx"::"r"(PacketBuffer), "r"(clientBase+0x343ed));
+		"jmp *%%ecx"::"r"(PacketBuffer), "r"(leaveoffset));
 }

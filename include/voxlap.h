@@ -28,3 +28,4 @@ struct aoskv6data
 
 struct aoskv6data* loadkv6(char* filnam);
 void kpzload(char* filepath, long *pic, int xsiz, int ysiz);
+long getcube(long x, long y, long z);
