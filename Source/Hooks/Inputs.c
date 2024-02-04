@@ -2,10 +2,10 @@
 #include <windows.h>
 #include <Menu.h>
 
-extern int clientBase;
+extern int client_base;
 
-__declspec(naked) void hookInputs() {
-	handleKeyboard();
+__declspec(naked) void hook_inputs() {
+	handle_keyboard();
 
 	asm volatile(
 		"push %%edi\n\t"
@@ -18,5 +18,5 @@ __declspec(naked) void hookInputs() {
 		"movl %%edi, (%%esi)\n\t"
 		"add $0x31273, %0\n\t"
 		"jmp *%0"
-		:: "r" (clientBase));
+		:: "r" (client_base));
 }

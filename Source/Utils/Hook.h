@@ -1,3 +1,3 @@
 #include <windows.h>
 
-void createHook(int clientBase, int address, void* func);
+void create_hook(int client_base, int address, void* func);

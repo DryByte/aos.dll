@@ -4,8 +4,8 @@
 #include <Voxlap.h>
 #include <Aos.h>
 
-HANDLE fileHandler;
-WIN32_FIND_DATAA fileDesc;
+HANDLE file_handler;
+WIN32_FIND_DATAA file_desc;
 
 struct ItemMultitext* mt;
 
@@ -16,105 +16,105 @@ const char kv6filenames[37][15] = {
 	"INTEL_B","INTEL_G","CP_B","CP_G","CP_N","SEMITRACER","SMGTRACER","SHOTGUNTRACER","SEMICASING","SMGCASING","SHOTGUNCASING"
 };
 
-void wordToLowerCase(char* s) {
+void word_to_lower_case(char* s) {
 	for (unsigned int c = 0; c < strlen(s); c++) {
 		*(s+c) = tolower(s[c]);
 	}
 }
 
-void loadSkinImages(char* skin_name) {
-	long* SEMI_BUFFER_PNG = (long*)(clientBase+0x51758);
-	long* SMG_BUFFER_PNG = (long*)(clientBase+0x517b0);
-	long* SHOTGUN_BUFFER_PNG = (long*)(clientBase+0x51808);
-	long* SPLASH_BUFFER_PNG = (long*)(clientBase+0x13b1e08);
-	long* TARGET_BUFFER_PNG = (long*)(clientBase+0x12b1c00);
+void load_skin_images(char* skin_name) {
+	long* SEMI_BUFFER_PNG = (long*)(client_base+0x51758);
+	long* SMG_BUFFER_PNG = (long*)(client_base+0x517b0);
+	long* SHOTGUN_BUFFER_PNG = (long*)(client_base+0x51808);
+	long* SPLASH_BUFFER_PNG = (long*)(client_base+0x13b1e08);
+	long* TARGET_BUFFER_PNG = (long*)(client_base+0x12b1c00);
 
 	char directory[256];
 	sprintf(directory, "./modloader/%s/png/*", skin_name);
-	HANDLE pngHandle = FindFirstFileA(directory, &fileDesc);
+	HANDLE png_handle = FindFirstFileA(directory, &file_desc);
 
-	if (pngHandle == INVALID_HANDLE_VALUE) {
+	if (png_handle == INVALID_HANDLE_VALUE) {
 		return;
 	}
 
-	WIN32_FIND_DATAA pngDesc;
+	WIN32_FIND_DATAA png_desc;
 	do {
-		if (!(pngDesc.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE))
+		if (!(png_desc.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE))
 			continue;
 
-		char* fileExt = strrchr(pngDesc.cFileName, '.');
-		if (!fileExt)
+		char* file_ext = strrchr(png_desc.cFileName, '.');
+		if (!file_ext)
 			continue;
 
 		char path[256];
-		sprintf(path, "./modloader/%s/png/%s", skin_name, pngDesc.cFileName);
+		sprintf(path, "./modloader/%s/png/%s", skin_name, png_desc.cFileName);
 
-		if (!strcmp(fileExt, ".png")) {
-			if (!strcmp(pngDesc.cFileName, "semi.png")) {
+		if (!strcmp(file_ext, ".png")) {
+			if (!strcmp(png_desc.cFileName, "semi.png")) {
 				kpzload(path, SEMI_BUFFER_PNG, 800, 600);
-			} else if(!strcmp(pngDesc.cFileName, "smg.png")) {
+			} else if(!strcmp(png_desc.cFileName, "smg.png")) {
 				kpzload(path, SMG_BUFFER_PNG, 800, 600);
-			} else if(!strcmp(pngDesc.cFileName, "shotgun.png")) {
+			} else if(!strcmp(png_desc.cFileName, "shotgun.png")) {
 				kpzload(path, SHOTGUN_BUFFER_PNG, 800, 600);
-			} else if(!strcmp(pngDesc.cFileName, "splash.png")) {
+			} else if(!strcmp(png_desc.cFileName, "splash.png")) {
 				kpzload(path, SPLASH_BUFFER_PNG, 800, 600);
-			} else if(!strcmp(pngDesc.cFileName, "target.png")) {
+			} else if(!strcmp(png_desc.cFileName, "target.png")) {
 				kpzload(path, TARGET_BUFFER_PNG, 16, 16);
 			}
 
-		} else if (!strcmp(fileExt, ".bmp")) {
-			HANDLE bmpfile = LoadImageA(NULL, path, IMAGE_BITMAP, 0,0, LR_CREATEDIBSECTION|LR_LOADFROMFILE);
+		} else if (!strcmp(file_ext, ".bmp")) {
+			HANDLE bmp_file = LoadImageA(NULL, path, IMAGE_BITMAP, 0,0, LR_CREATEDIBSECTION|LR_LOADFROMFILE);
 
-			if (!bmpfile)
+			if (!bmp_file)
 				continue;
 
 			int offset = 0;
-			if (!strcmp(pngDesc.cFileName, "indicator.bmp")) {
+			if (!strcmp(png_desc.cFileName, "indicator.bmp")) {
 				offset = 0x13b75c8;
-			} else if (!strcmp(pngDesc.cFileName, "player.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "player.bmp")) {
 				offset = 0x13cf838;
-			} else if (!strcmp(pngDesc.cFileName, "intel.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "intel.bmp")) {
 				offset = 0x13b1f24;
-			} else if (!strcmp(pngDesc.cFileName, "command.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "command.bmp")) {
 				offset = 0x13b2040;
-			} else if (!strcmp(pngDesc.cFileName, "medical.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "medical.bmp")) {
 				offset = 0x13cf804;
-			} else if (!strcmp(pngDesc.cFileName, "tracer.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "tracer.bmp")) {
 				offset = 0x13b1ca8;
-			} else if (!strcmp(pngDesc.cFileName, "health.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "health.bmp")) {
 				offset = 0x12b1c0c;
-			} else if (!strcmp(pngDesc.cFileName, "block.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "block.bmp")) {
 				offset = 0x13b75a4;
-			} else if (!strcmp(pngDesc.cFileName, "semi.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "semi.bmp")) {
 				offset = 0x13b1c20;
-			} else if (!strcmp(pngDesc.cFileName, "shotgun.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "shotgun.bmp")) {
 				offset = 0x13cf7e0;
-			} else if (!strcmp(pngDesc.cFileName, "smg.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "smg.bmp")) {
 				offset = 0x13b1e10;
-			} else if (!strcmp(pngDesc.cFileName, "grenade.bmp")) {
+			} else if (!strcmp(png_desc.cFileName, "grenade.bmp")) {
 				offset = 0x13b1ca0;
 			}
 
 			if (!offset)
 				continue;
 
-			*((long*)(clientBase+offset)) = (int)bmpfile;
+			*((long*)(client_base+offset)) = (int)bmp_file;
 		}
-	} while(FindNextFile(pngHandle, &pngDesc));
+	} while(FindNextFile(png_handle, &png_desc));
 }
 
-void loadSkin(char* skin_name) {
+void load_skin(char* skin_name) {
 	char directory[256];
 	sprintf(directory, "./modloader/%s/kv6", skin_name);
 
 	char kv6filenamesCopy[37][15];
 	memcpy(kv6filenamesCopy, kv6filenames, 37*15);
 	for (int i = 0; i < 37; i++) {
-		wordToLowerCase(kv6filenamesCopy[i]);
+		word_to_lower_case(kv6filenamesCopy[i]);
 
 		char tmpdir[256];
 		sprintf(tmpdir, "%s/%s.kv6", directory, kv6filenamesCopy[i]);
-		free((struct aoskv6data*)(clientBase+0x13cf840+i*4)); // im not sure if this is right...
+		free((struct aoskv6data*)(client_base+0x13cf840+i*4)); // im not sure if this is right...
 
 		int firsttry = 0;
 		unsigned char color = 0;
@@ -144,9 +144,9 @@ void loadSkin(char* skin_name) {
 			for (int voxel = 0; voxel < (int)kv6->numvoxs; voxel++) {
 				if ((kv6->vox[voxel].col & 0xffffff) == 0) {
 					if (color == 'b')
-						kv6->vox[voxel].col = *(int*)(clientBase+0x13cfcec);
+						kv6->vox[voxel].col = *(int*)(client_base+0x13cfcec);
 					else
-						kv6->vox[voxel].col = *(int*)(clientBase+0x13cfcfc);
+						kv6->vox[voxel].col = *(int*)(client_base+0x13cfcfc);
 				}
 			}
 		}
@@ -170,58 +170,58 @@ void loadSkin(char* skin_name) {
 				break;
 		}
 
-		*(int*)(clientBase+0x13cf840+i*4) = (int)kv6;
+		*(int*)(client_base+0x13cf840+i*4) = (int)kv6;
 	}
 }
 
-void updateSkinBtn(struct Menu* skinMenu, struct ItemClickableButton* btn) {
-	if (!btn->isClicking)
+void update_skin_btn(struct Menu* skinMenu, struct ItemClickableButton* btn) {
+	if (!btn->is_clicking)
 		return;
 
 	if (!strcmp(mt->selected->text, "(none)")) {
-		loadkv6Files();
-		loadimageFiles();
+		load_kv6_files();
+		load_image_files();
 	} else {
-		loadSkin(mt->selected->text);
-		loadSkinImages(mt->selected->text);
+		load_skin(mt->selected->text);
+		load_skin_images(mt->selected->text);
 	}
 
-	loadplayerSkins();
-	loadworldObjects();
+	load_player_skins();
+	load_world_objects();
 }
 
-void createModloaderMenu() {
-	struct Menu* skinMenu = createMenu(100, 300, 0, "Skins");
-	skinMenu->xSize = 100;
-	skinMenu->ySize = 150;
+void create_modloader_menu() {
+	struct Menu* skin_menu = create_menu(100, 300, 0, "Skins");
+	skin_menu->x_size = 100;
+	skin_menu->y_size = 150;
 
-	mt = createMultitext(skinMenu, 0xffffff);
-	mt->xSize = 100;
-	mt->ySize = 100;
+	mt = create_multitext(skin_menu, 0xffffff);
+	mt->x_size = 100;
+	mt->y_size = 100;
 
-	struct ItemClickableButton* saveBtn = createClickableButton(skinMenu, "SAVE", &updateSkinBtn);
-	saveBtn->xSize = 100;
-	saveBtn->ySize = 25;
-	saveBtn->xPos = 0;
-	saveBtn->yPos = -30;
-	saveBtn->interval = 1;
+	struct ItemClickableButton* save_btn = create_clickable_button(skin_menu, "SAVE", &update_skin_btn);
+	save_btn->x_size = 100;
+	save_btn->y_size = 25;
+	save_btn->x_pos = 0;
+	save_btn->y_pos = -30;
+	save_btn->interval = 1;
 
 	do {
-		if (!(fileDesc.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+		if (!(file_desc.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 			continue;
 
-		if (!strcmp(fileDesc.cFileName, ".") || !strcmp(fileDesc.cFileName, ".."))
+		if (!strcmp(file_desc.cFileName, ".") || !strcmp(file_desc.cFileName, ".."))
 			continue;
-		addNewText(mt, fileDesc.cFileName);
-	} while(FindNextFile(fileHandler, &fileDesc));
-	addNewText(mt, "(none)");
+		add_new_text(mt, file_desc.cFileName);
+	} while(FindNextFile(file_handler, &file_desc));
+	add_new_text(mt, "(none)");
 }
 
 void initmodloader() {
-	fileHandler = FindFirstFileA("./modloader/*", &fileDesc);
+	file_handler = FindFirstFileA("./modloader/*", &file_desc);
 
-	if (fileHandler == INVALID_HANDLE_VALUE)
+	if (file_handler == INVALID_HANDLE_VALUE)
 		return;
 
-	createModloaderMenu();
+	create_modloader_menu();
 }

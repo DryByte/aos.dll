@@ -13,7 +13,7 @@ void drawline2d(int x1, int y1, int x2, int y2, int color) {
 		"add $0x1ef80, %%edi\n\t"
 		"call *%%edi\n\t"
 		"add $0x10, %%esp"
-	:: "r" (clientBase), "g" (x1), "g" (y1), "g" (x2), "g" (y2), "g" (color));
+	:: "r" (client_base), "g" (x1), "g" (y1), "g" (x2), "g" (y2), "g" (color));
 }
 
 //(tf,tp,tx,ty,tcx,tcy): Tile source, (tcx&tcy) is texel (<<16) at (sx,sy)
@@ -49,7 +49,7 @@ void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, l
 		"add $0x22390, %%edi\n\t"
 		"call *%%edi\n\t"
 		"add $0x24, %%esp\n\t"
-	:: "r" (clientBase), "g" (tf), "g" (tp), "g" (tx), "g" (ty), "g" (tcx), "g" (tcy), "g" (sx), "g" (sy), "g" (xz), "g" (yz), "g" (black));
+	:: "r" (client_base), "g" (tf), "g" (tp), "g" (tx), "g" (ty), "g" (tcx), "g" (tcy), "g" (sx), "g" (sy), "g" (xz), "g" (yz), "g" (black));
 }
 
 void playsound2d(char *filnam, long volperc) {
@@ -58,7 +58,7 @@ void playsound2d(char *filnam, long volperc) {
 		"mov %2, %%edi\n\t"
 		"add $0x19c30, %0\n\t"
 		"call *%0"
-	:: "r" (clientBase), "r" (filnam), "r" (volperc));
+	:: "r" (client_base), "r" (filnam), "r" (volperc));
 }
 
 // this function actually comes from winmain.cpp
@@ -77,23 +77,23 @@ void readmouse(int *fmousx, int *fmousy, int* bstatus) {
 		"call *%esi"
 	);
 
-	*fmousx = *(int*)(clientBase+0x13b1e14);
-	*fmousy = *(int*)(clientBase+0x13cf80c);
-	*bstatus = *(int*)(clientBase+0x13b75b0);
+	*fmousx = *(int*)(client_base+0x13b1e14);
+	*fmousy = *(int*)(client_base+0x13cf80c);
+	*bstatus = *(int*)(client_base+0x13b75b0);
 }
 
 // a replacer to readmouse() so this can be used through the
 // aos original loop
 void getmousechange(int *fmousx, int *fmousy, int* bstatus) {
-	*fmousx = *(int*)(clientBase+0x13b1e14);
-	*fmousy = *(int*)(clientBase+0x13cf80c);
-	*bstatus = *(int*)(clientBase+0x13b75b0);
+	*fmousx = *(int*)(client_base+0x13b1e14);
+	*fmousy = *(int*)(client_base+0x13cf80c);
+	*bstatus = *(int*)(client_base+0x13b75b0);
 }
 
 long keyread() {
-	long keybuf = (long)clientBase+0x7c770;
-	long keybufw = *(long*)(clientBase+0x84acc);
-	long* keybufr = (long*)(clientBase+0x84ac8);
+	long keybuf = (long)client_base+0x7c770;
+	long keybufw = *(long*)(client_base+0x84acc);
+	long* keybufr = (long*)(client_base+0x84ac8);
 
 	if (*keybufr == keybufw)
 		return 0;
@@ -110,7 +110,7 @@ struct aoskv6data* loadkv6(char* filename) {
 		"mov %1, %%eax\n\t"
 		"call *%2\n\t"
 		"mov %%eax, %0"
-	: "=r" (ret) : "r"(filename), "r"(clientBase+0x257e0));
+	: "=r" (ret) : "r"(filename), "r"(client_base+0x257e0));
 
 	return ret;
 }
@@ -151,7 +151,7 @@ void kpzload(char* filepath, long *pic, int xsiz, int ysiz) {
 		"push %1\n\t"
 		"call *%6\n\t"
 		"mov %%eax, %0"
-	: "=r" (result) : "g" (coolbuf), "g" (loadbuf), "g" (nsize), "g"(xsiz), "g"(ysiz), "r" (clientBase+0x26fd0));
+	: "=r" (result) : "g" (coolbuf), "g" (loadbuf), "g" (nsize), "g"(xsiz), "g"(ysiz), "r" (client_base+0x26fd0));
 
 	free(coolbuf);
 
@@ -174,7 +174,7 @@ long getcube(long x, long y, long z) {
 		"call *%%edi\n\t"
 		"mov %%eax, %0\n\t"
 		"add $0x4, %%esp"
-		: "=r" (ret) : "g" (x), "g" (y), "g" (z), "r" (clientBase+0x1be20));
+		: "=r" (ret) : "g" (x), "g" (y), "g" (z), "r" (client_base+0x1be20));
 
 	return ret;
 }

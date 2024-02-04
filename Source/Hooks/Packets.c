@@ -8,7 +8,7 @@ ENetPeer* peer;
 
 extern struct ItemMultitext* LoggerMultitext;
 
-void sendPacket(void* packet, size_t size) {
+void send_packet(void* packet, size_t size) {
 	asm volatile(
 		"mov %0, %%esi\n\t"
 		"push $0x1\n\t"
@@ -23,41 +23,41 @@ void sendPacket(void* packet, size_t size) {
 		"add $0x38690, %%esi\n\t"
 		"call *%%esi\n\t"
 		"add $0x4, %%esp"
-	:: "r" (clientBase), "r" (packet), "g" (size));
+	:: "r" (client_base), "r" (packet), "g" (size));
 }
 
-void sendMsg(char *msg) {
-	struct packetMsg* msgPacket = malloc(sizeof(struct packetMsg));
-	msgPacket->packetId = 17;
-	msgPacket->playerId = *(uint8_t*)(clientBase+0x13B1CF0);
-	msgPacket->chat_type = 0;
+void send_msg(char *msg) {
+	struct packet_chat* msgp = malloc(sizeof(struct packet_chat));
+	msgp->packet_id = 17;
+	msgp->player_id = *(uint8_t*)(client_base+0x13B1CF0);
+	msgp->chat_type = 0;
 
-	strncpy(msgPacket->msg, msg, strlen(msg));
-	msgPacket->msg[strlen(msg)] = '\0';
+	strncpy(msgp->msg, msg, strlen(msg));
+	msgp->msg[strlen(msg)] = '\0';
 
-	sendPacket(msgPacket, sizeof(msgPacket)+strlen(msg));
+	send_packet(msgp, sizeof(msgp)+strlen(msg));
 }
 
-void sendExtInfo() {
-	struct packetExtInfo* packetExt = malloc(sizeof(struct packetExtInfo));
-	packetExt->packetId = 60;
-	packetExt->length = 1;
+void send_ext_info() {
+	struct packet_ext_info* extinfop = malloc(sizeof(struct packet_ext_info));
+	extinfop->packet_id = 60;
+	extinfop->length = 1;
 
-	struct extPacket* extC = malloc(sizeof(struct extPacket));
-	extC->extId = 193;
+	struct packet_extension* extC = malloc(sizeof(struct packet_extension));
+	extC->ext_id = 193;
 	extC->version = 1;
 
-	packetExt->packet = *extC;
+	extinfop->packet = *extC;
 
-	sendPacket(packetExt, sizeof(packetExt));
+	send_packet(extinfop, sizeof(extinfop));
 
-	free(packetExt);
+	free(extinfop);
 	free(extC);
 }
 
-void sendClientInfo() {
-	struct packetVersion* packetV = malloc(sizeof(struct packetVersion));
-	packetV->packetId = 34;
+void send_client_info() {
+	struct packet_client_info* packetV = malloc(sizeof(struct packet_client_info));
+	packetV->packet_id = 34;
 	packetV->identifier = 68;
 	packetV->version_major = 1;
 	packetV->version_minor = 1;
@@ -66,17 +66,17 @@ void sendClientInfo() {
 	char *a = "just testing";
 	strncpy(packetV->os, a, strlen(a));
 
-	sendPacket(packetV, sizeof(packetV)+strlen(a)+1);
+	send_packet(packetV, sizeof(packetV)+strlen(a)+1);
 
 	free(packetV);
 }
 
-void sendHandshakeBack(int fds) {
-	struct packetHandshakeBack* packetHandBack = malloc(sizeof(struct packetHandshakeBack));
-	packetHandBack->packetId = 32;
-	packetHandBack->challenge = fds;
+void send_handshake_back(int challenge) {
+	struct packet_handshake_back* packetHandBack = malloc(sizeof(struct packet_handshake_back));
+	packetHandBack->packet_id = 32;
+	packetHandBack->challenge = challenge;
 
-	sendPacket(packetHandBack, sizeof(packetHandBack)+1);
+	send_packet(packetHandBack, sizeof(packetHandBack)+1);
 	free(packetHandBack);
 }
 
@@ -90,13 +90,13 @@ int packet_handler() {
 	switch(PacketBuffer->data[0]) {
 		case 13:
 			{
-				struct packetBlockAction* blockAction = (struct packetBlockAction*)PacketBuffer->data;
+				struct packet_block_action* block_action = (struct packet_block_action*)PacketBuffer->data;
 
-				if (blockAction->actionType == 0) {
-					long block = getcube(blockAction->xPos, blockAction->yPos, blockAction->zPos);
+				if (block_action->action_type == 0) {
+					long block = getcube(block_action->x, block_action->y, block_action->z);
 
 					if (block != 0) {
-						long color = *(long*)(clientBase+0x7ce8c+(blockAction->playerId*936));
+						long color = *(long*)(client_base+0x7ce8c+(block_action->player_id*936));
 
 						*(long*)block = color|0x7f000000;
 						skip = 1;
@@ -108,34 +108,32 @@ int packet_handler() {
 			{
 				uint8_t* buf = (uint8_t*)malloc(PacketBuffer->dataLength*sizeof(uint8_t));
 				memcpy(buf, PacketBuffer->data, PacketBuffer->dataLength*sizeof(uint8_t));
-				struct packetMsg* p = (struct packetMsg*)buf;
+				struct packet_chat* p = (struct packet_chat*)buf;
 
 				printf("%i\n", p->chat_type);
 
-				addNewText(LoggerMultitext, p->msg);
+				add_new_text(LoggerMultitext, p->msg);
 				if (p->chat_type > 2)
-					addCustomMessage(p->chat_type, p->msg);
+					add_custom_message(p->chat_type, p->msg);
 			}
 			break;
 		case 31:
 			{
-				struct packetHandshakeBack* fds = (struct packetHandshakeBack*)PacketBuffer->data;
-				sendHandshakeBack(fds->challenge);
+				struct packet_handshake_back* fds = (struct packet_handshake_back*)PacketBuffer->data;
+				send_handshake_back(fds->challenge);
 			}
 			break;
 		case 33:
-			sendClientInfo();
+			send_client_info();
 			break;
 		case 60:
-			sendExtInfo();
+			send_ext_info();
 			break;
 	}
 
-	int leaveoffset = clientBase+0x343ed;
-	if (skip == 1) {
-		printf("fds?\n");
-		leaveoffset = clientBase+0x355f2;
-	}
+	int leaveoffset = client_base+0x343ed;
+	if (skip == 1)
+		leaveoffset = client_base+0x355f2;
 
 	return leaveoffset;
 }

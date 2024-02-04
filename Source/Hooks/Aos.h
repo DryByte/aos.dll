@@ -1,6 +1,6 @@
 #include <windows.h>
 
-extern int clientBase;
+extern int client_base;
 
 enum KV6TYPE {
 	SPADE_3 = 0,
@@ -46,9 +46,9 @@ enum KV6TYPE {
 	SHOTGUNCASING = 144
 };
 
-void loadkv6Files();
-void loadworldObjects();
-void loadPlayerTeamSkin(int playerId);
-void loadPlayerWeaponSkin(int playerId);
-void loadplayerSkins();
-void loadimageFiles();
+void load_kv6_files();
+void load_world_objects();
+void load_player_team_skin(int player_id);
+void load_player_weapon_skin(int player_id);
+void load_player_skins();
+void load_image_files();

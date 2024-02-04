@@ -4,42 +4,42 @@
 #include <stdint.h>
 #include <enet/enet.h>
 
-extern int clientBase;
+extern int client_base;
 
-struct __attribute__((__packed__)) packetBlockAction
+struct __attribute__((__packed__)) packet_block_action
 {
-	uint8_t packetId;
-	uint8_t playerId;
-	uint8_t actionType;
-	int xPos;
-	int yPos;
-	int zPos;
+	uint8_t packet_id;
+	uint8_t player_id;
+	uint8_t action_type;
+	int x;
+	int y;
+	int z;
 };
 
-struct packetMsg
+struct packet_chat
 {
-	uint8_t packetId;
-	uint8_t playerId;
+	uint8_t packet_id;
+	uint8_t player_id;
 	uint8_t chat_type;
 	char msg[255];
 };
 
-struct extPacket
+struct packet_extension
 {
-	uint8_t extId;
+	uint8_t ext_id;
 	uint8_t version;
 };
 
-struct packetExtInfo
+struct packet_ext_info
 {
-	uint8_t packetId;
+	uint8_t packet_id;
 	uint8_t length;
-	struct extPacket packet;
+	struct packet_extension packet;
 };
 
-struct packetVersion
+struct packet_client_info
 {
-	uint8_t packetId;
+	uint8_t packet_id;
 	uint8_t identifier;
 	uint8_t version_major;
 	uint8_t version_minor;
@@ -47,11 +47,11 @@ struct packetVersion
 	char os[255];
 };
 
-struct packetHandshakeBack
+struct packet_handshake_back
 {
-	uint8_t packetId;
+	uint8_t packet_id;
 	int challenge;
 };
 
 void packet_hook(void);
-void sendMsg(char *msg);
+void send_msg(char *msg);

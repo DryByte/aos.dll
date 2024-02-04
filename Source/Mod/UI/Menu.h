@@ -20,9 +20,9 @@ struct ItemText {
 	uint8_t type;
 	int id;
 	int color;
-	int fontId;
+	int font_id;
 	char text[32];
-	int xPos, yPos;
+	int x_pos, y_pos;
 };
 
 struct MultitextNode {
@@ -35,80 +35,80 @@ struct ItemMultitext {
 	uint8_t type;
 	int id;
 	int color;
-	int xSize, ySize;
-	int xPos, yPos;
+	int x_size, y_size;
+	int x_pos, y_pos;
 
-	int currentPos;
+	int current_pos;
 	struct MultitextNode* selected;
-	struct MultitextNode* firstNode;
-	struct MultitextNode* lastNode;
+	struct MultitextNode* first_node;
+	struct MultitextNode* last_node;
 };
 
 struct ItemClickableButton
 {
 	uint8_t type;
 	int id;
-	int isClicking;
+	int is_clicking;
 	long color;
-	long holdColor;
+	long hold_color;
 	char text[32];
-	int xSize, ySize;
-	int xPos, yPos;
-	int isToolbar;
+	int x_size, y_size;
+	int x_pos, y_pos;
+	int is_toolbar;
 	int interval;
-	time_t lastInteraction;
+	time_t last_interaction;
 	void (*event)();
 };
 
 struct ItemTextInput
 {
 	uint8_t type;
-	long backgroundColor;
+	long background_color;
 	int id;
 	char placeholder[128];
 	char input[128];
-	int xSize, ySize;
-	int xPos, yPos;
+	int x_size, y_size;
+	int x_pos, y_pos;
 };
 
 struct ItemSlide {
 	uint8_t type;
 	int id;
-	int xSize, ySize;
-	int xPos, yPos;
-	int sliderSize;
-	int maxValue;
-	int minValue;
-	int showStatus;
-	long sliderColor;
-	long backgroundColor;
-	int* interactInt;
+	int x_size, y_size;
+	int x_pos, y_pos;
+	int slider_size;
+	int max_value;
+	int min_value;
+	int show_status;
+	long slider_color;
+	long background_color;
+	int* interact_int;
 };
 
 struct Menu {
 	int id;
-	int x, y;
-	int xSize, ySize;
-	int fixedSize;
+	int x_pos, y_pos;
+	int x_size, y_size;
+	int fixed_size;
 	int hidden;
 	int minimized;
 	int pin;
-	int outlineColor;
-	int backgroundColor;
+	int outline_color;
+	int background_color;
 
 	char title[32];
 	void* items[MAX_MENU_ITEMS];
 };
 
-void showAllMenus();
-void hideAllMenus();
-int getNextAvailableMenuId();
-struct ItemText* createText(struct Menu* menu, int fontid, int color, char* text);
-void addNewText(struct ItemMultitext* multitext, char* text);
-struct ItemMultitext* createMultitext(struct Menu* menu, int color);
-struct ItemClickableButton* createClickableButton(struct Menu* menu, char* text, void (*func)());
-struct ItemTextInput* createTextInput(struct Menu* menu, int xSize, int ySize, long backgroundColor, char* placeholder);
-struct ItemSlide* createSlide(struct Menu* menu, int minValue, int maxValue, int* interact);
-void handleKeyboard();
-struct Menu* createMenu(int x, int y, int outline, char* title);
-void drawMenus();
+void show_all_menus();
+void hide_all_menus();
+int get_next_available_menu_id();
+struct ItemText* create_text(struct Menu* menu, int fontid, int color, char* text);
+void add_new_text(struct ItemMultitext* multitext, char* text);
+struct ItemMultitext* create_multitext(struct Menu* menu, int color);
+struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* text, void (*func)());
+struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, long backgroundColor, char* placeholder);
+struct ItemSlide* create_slide(struct Menu* menu, int minValue, int maxValue, int* interact);
+void handle_keyboard();
+struct Menu* create_menu(int x, int y, int outline, char* title);
+void draw_menus();

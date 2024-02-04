@@ -1,5 +1,5 @@
 #include <windows.h>
-extern int clientBase;
+extern int client_base;
 
 	//Screen related functions:
 void drawline2d(int x1, int y1, int x2, int y2, int color);

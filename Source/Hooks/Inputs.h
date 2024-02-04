@@ -1,1 +1,1 @@
-void hookInputs();
+void hook_inputs();

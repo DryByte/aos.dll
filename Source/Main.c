@@ -13,16 +13,8 @@
 #include <Modloader.h>
 
 HANDLE clientHandle;
-int clientBase; // this is hacky, should we just change the original clienthandle to int?
+int client_base; // this is hacky, should we just change the original clienthandle to int?
 struct ItemMultitext* LoggerMultitext;
-
-void testBtnEventHandler(struct Menu* menu, struct ItemClickableButton* btn) {
-	if (btn->isClicking) {
-		strncpy(btn->text, "YOU MADE IT!", 32);
-	} else {
-		strncpy(btn->text, "CLICK ME!", 32);
-	}
-}
 
 DWORD WINAPI LoopFunction(LPVOID lpParam)
 {
@@ -33,95 +25,52 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 		return 0;
 	}
 
-	clientBase = (int)clientHandle;
+	client_base = (int)clientHandle;
 
 	printf("\n----------------\n");
 	printf("DLL Injected :D\n");
 	printf("----------------\n");
 
-	setMaxFPS(120);
+	set_max_fps(120);
 
 	//83 7e 0c 02
 	// remove the block for packets of length less than 2 so we receive use versionget
 	DWORD _old_protect;
-	uint8_t* lengthLimit = (uint8_t*)(clientBase+0x343e1);
+	uint8_t* lengthLimit = (uint8_t*)(client_base+0x343e1);
 	VirtualProtect((void*)lengthLimit, 1, PAGE_EXECUTE_READWRITE, &_old_protect);
 	*lengthLimit = 1;
 
-	createHook(clientBase, 0x343e4, packet_hook);
-	createHook(clientBase, 0x32f00, renderingHookBI);
-	createHook(clientBase, 0x334aa, renderingHookAI);
-	createHook(clientBase, 0x3126d, hookInputs);
+	create_hook(client_base, 0x343e4, packet_hook);
+	create_hook(client_base, 0x32f00, rendering_hook_bi);
+	create_hook(client_base, 0x334aa, rendering_hook_ai);
+	create_hook(client_base, 0x3126d, hook_inputs);
 
-	struct Menu* mfds = createMenu(150, 20, 0, "Just a test");
-	mfds->fixedSize = 0;
-
-	struct Menu* meirrita = createMenu(400, 30, 0, "Sliders menu");
-	meirrita->fixedSize = 0;
-
-	int randomintfds = 35;
-	struct ItemSlide* slidefds = createSlide(meirrita, -35, 150, &randomintfds);
-	slidefds->xPos = 5;
-	slidefds->yPos = 10;
-	slidefds->xSize = 15;
-	slidefds->ySize = 50;
-	slidefds->showStatus = 1;
-
-	struct ItemText* hptxt = createText(meirrita, -1, 0x30ff30, "Change your health:");
-	hptxt->xPos = 25;
-	hptxt->yPos = 10;
-
-	struct ItemSlide* slidehp = createSlide(meirrita, 0, 255, (int*)(clientBase+0x7ceb4+(*(int*)(clientBase+0x13b1cf0))*0x3a8));
-	slidehp->xPos = 25;
-	slidehp->yPos = 20;
-	slidehp->xSize = 50;
-	slidehp->ySize = 15;
-	slidehp->sliderColor = 0xffff2020;
-	slidehp->backgroundColor = 0x3030ff00;
-
-	struct ItemText* itemfds = createText(mfds, 0, 0xffffff, "muito dasdasd");
-	itemfds->xPos = -50;
-	itemfds->yPos = -20;
-
-	createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
-	struct ItemClickableButton* btnfds = createClickableButton(mfds, "CLICK ME!", &testBtnEventHandler);
-	btnfds->xPos = -90;
-	btnfds->yPos = -15;
-
-	createTextInput(mfds, 90, 15, 0xffffffff, "Type here ma friend");
-	struct ItemTextInput* inpfds = createTextInput(mfds, 90, 15, 0xffffffff, "here too");
-	inpfds->xPos = 15;
-	inpfds->yPos = -15;
-
-	struct Menu* LoggerMenu = createMenu(300, 200, 0, "Logger");
-	LoggerMultitext = createMultitext(LoggerMenu, 0xffffff);
-	addNewText(LoggerMultitext, "tf is going on? is it working");
-	addNewText(LoggerMultitext, "another item kekw");
-	addNewText(LoggerMultitext, "one more");
+	struct Menu* LoggerMenu = create_menu(300, 200, 0, "Logger");
+	LoggerMultitext = create_multitext(LoggerMenu, 0xffffff);
 
 	initmodloader();
-	loadAoSConfig();
-	struct WindowSize fds = getConfigWindowSize();
+	load_aos_config();
+	struct WindowSize fds = get_config_window_size();
 	printf("%i\n", fds.width);
 	printf("%i\n", fds.height);
-	printf("%i\n", getConfigVolume());
-	printf("%.2f\n", getConfigMouseSensitivity());
+	printf("%i\n", get_config_volume());
+	printf("%.2f\n", get_config_mouse_sensitivity());
 
 	int isMenuHidden = 0;
 	while (1) {
 		if (GetAsyncKeyState(VK_MENU)) {
 			if (isMenuHidden) {
 				isMenuHidden = 0;
-				showAllMenus();
+				show_all_menus();
 			} else {
 				isMenuHidden = 1;
-				hideAllMenus();
+				hide_all_menus();
 			}
 		} else if (GetAsyncKeyState(VK_NEXT)) {
-			LoggerMultitext->currentPos+=1;
+			LoggerMultitext->current_pos+=1;
 		} else if (GetAsyncKeyState(VK_PRIOR)) {
-			if (LoggerMultitext->currentPos > 0)
-				LoggerMultitext->currentPos-=1;
+			if (LoggerMultitext->current_pos > 0)
+				LoggerMultitext->current_pos-=1;
 		}
 
 		Sleep(250);

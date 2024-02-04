@@ -4,17 +4,17 @@
 #include <Menu.h>
 #include <Voxlap.h>
 
-struct customMessage customMessagesBuffer[4];
+struct custom_message customMessagesBuffer[4];
 
-void setMaxFPS(int fps) {
+void set_max_fps(int fps) {
 	DWORD old_protect;
-	float* fpsRegion = (float*)(clientBase+0x48e00);
+	float* fps_region = (float*)(client_base+0x48e00);
 
-	VirtualProtect((void*)fpsRegion, 4, PAGE_EXECUTE_READWRITE, &old_protect);
-	*fpsRegion = (float)1/fps;
+	VirtualProtect((void*)fps_region, 4, PAGE_EXECUTE_READWRITE, &old_protect);
+	*fps_region = (float)1/fps;
 }
 
-void drawText(int x, int y, int color, char* msg) {
+void draw_text(int x, int y, int color, char* msg) {
 	asm volatile(
 		"push %1\n\t"
 		"push %2\n\t"
@@ -23,12 +23,12 @@ void drawText(int x, int y, int color, char* msg) {
 
 		"call *%0\n\t"
 		"add $8, %%esp"
-		:: "r" (clientBase+0x20290), "r"(msg), "r"(y), "r"(color),  "r" (x)
+		:: "r" (client_base+0x20290), "r"(msg), "r"(y), "r"(color),  "r" (x)
 	);
 }
 
-int getCustomFontSize(int fontid, char *msg) {
-	fontid = fontid*4;
+int get_custom_font_size(int font_id, char *msg) {
+	font_id = font_id*4;
 	int len;
 
 	asm volatile(
@@ -44,17 +44,17 @@ int getCustomFontSize(int fontid, char *msg) {
 		"add %%edi, %%eax\n\t"
 		"call *%%eax\n\t" // getTextLength
 		"mov %%eax, %0\n\t"
-	:"=r" (len) : "r" (clientBase), "r" (msg),"g" (fontid));
+	:"=r" (len) : "r" (client_base), "r" (msg),"g" (font_id));
 
 	return len;
 }
 
-void drawCustomFontText(int x, int y, int color, int fontid, char *msg) {
-	fontid = fontid*4;
+void draw_custom_font_text(int x, int y, int color, int font_id, char *msg) {
+	font_id = font_id*4;
 
 	asm volatile(
 		"mov %5, %%esi\n\t" // msg
-		"mov %0, %%edi\n\t" // clientBase
+		"mov %0, %%edi\n\t" // client_base
 
 		"mov $0x85cf0, %%ecx\n\t"
 		"add %4, %%ecx\n\t"
@@ -80,11 +80,11 @@ void drawCustomFontText(int x, int y, int color, int fontid, char *msg) {
 		"mov $0x3c2b0, %%eax\n\t"
 		"add %%edi, %%eax\n\t"
 		"call *%%eax"
-	:: "r" (clientBase), "g" (x), "g" (y), "g" (color), "g" (fontid), "r" (msg));
+	:: "r" (client_base), "g" (x), "g" (y), "g" (color), "g" (font_id), "r" (msg));
 }
 
 // colors in argb
-void drawProgressBar(float progress, int progressColor, int backgroundColor) {
+void draw_progress_bar(float progress, int progress_color, int background_color) {
 	asm volatile(
 		"mov %0, %%eax\n\t"
 		"add $0x2ba20, %%eax\n\t"
@@ -93,34 +93,34 @@ void drawProgressBar(float progress, int progressColor, int backgroundColor) {
 		"push %1\n\t"//progress
 		"call *%%eax\n\t"
 		"add $0xc, %%esp"
-		:: "r" (clientBase), "g"(progress), "g" (progressColor), "g" (backgroundColor));
+		:: "r" (client_base), "g"(progress), "g" (progress_color), "g" (background_color));
 }
 
-void renderStats() {
+void render_stats() {
 	char fps[20];
-	int maxFps = (int)(1 / *(float*)(clientBase+0x48e00))+1;
-	int currentFps = (int)(1 / *(float*)(clientBase+0x13cf83c))+1;
+	int max_fps = (int)(1 / *(float*)(client_base+0x48e00))+1;
+	int current_fps = (int)(1 / *(float*)(client_base+0x13cf83c))+1;
 
-	drawSquare(1, 1, 10*8, 10, 0xff0000);
-	sprintf(fps, "FPS: %i/%i", currentFps, maxFps);
-	drawText(2,2, 0xffffff, fps);
+	draw_square(1, 1, 10*8, 10, 0xff0000);
+	sprintf(fps, "FPS: %i/%i", current_fps, max_fps);
+	draw_text(2,2, 0xffffff, fps);
 }
 
-void addCustomMessage(int type, char *msg) {
-	struct customMessage c_msg;
+void add_custom_message(int type, char *msg) {
+	struct custom_message c_msg;
 	c_msg.timestamp = time(NULL);
 	strncpy(c_msg.msg, msg, 255);
 
 	customMessagesBuffer[type-3] = c_msg;
 }
 
-void renderCustomMessages() {
-	time_t currentTimestamp = time(NULL);
+void render_custom_messages() {
+	time_t current_timestamp = time(NULL);
 	for (int i = 0; i < 4; i++) {
-		struct customMessage c_msg = customMessagesBuffer[i];
+		struct custom_message c_msg = customMessagesBuffer[i];
 
-		if (currentTimestamp - c_msg.timestamp < 10) {
-			struct WindowSize wind = getConfigWindowSize();
+		if (current_timestamp - c_msg.timestamp < 10) {
+			struct WindowSize wind = get_config_window_size();
 			int x;
 			int y;
 			int color;
@@ -131,88 +131,88 @@ void renderCustomMessages() {
 				case MESSAGE_STATUS:
 					color = 0xffffff;
 					fontid = 2;
-					x = (wind.width - getCustomFontSize(fontid, c_msg.msg)) / 2;
+					x = (wind.width - get_custom_font_size(fontid, c_msg.msg)) / 2;
 					y = wind.height*10/100;
 					break;
 				case MESSAGE_NOTICE:
 					color = 0xffffff;
 					fontid = 1;
-					x = (wind.width - getCustomFontSize(fontid, c_msg.msg)) / 2;
+					x = (wind.width - get_custom_font_size(fontid, c_msg.msg)) / 2;
 					y = wind.height*60/100;
 
 					break;
 				case MESSAGE_WARNING:
 					color = 0xffee00;
 					fontid = 1;
-					x = (wind.width - getCustomFontSize(fontid, c_msg.msg)) / 2;
+					x = (wind.width - get_custom_font_size(fontid, c_msg.msg)) / 2;
 					y = wind.height*63/100;
 
 					break;
 				case MESSAGE_ERROR:
 					color = 0xff0000;
 					fontid = 1;
-					x = (wind.width - getCustomFontSize(fontid, c_msg.msg)) / 2;
+					x = (wind.width - get_custom_font_size(fontid, c_msg.msg)) / 2;
 					y = wind.height*66/100;
 
 					break;
 			}
 
-			drawCustomFontText(x, y, color, fontid, c_msg.msg);
+			draw_custom_font_text(x, y, color, fontid, c_msg.msg);
 		}
 	}
 }
 
-void renderChatshadow() {
-	char chatBuffer = *(char*)(clientBase+0x840c0);
-	float currentTS = *(float*)(clientBase+0x13cf8d4);
+void render_chat_shadow() {
+	char chat_buffer = *(char*)(client_base+0x840c0);
+	float current_ts = *(float*)(client_base+0x13cf8d4);
 
-	struct WindowSize wins = getConfigWindowSize();
-	unsigned int yPos = wins.height-95;
-	unsigned int ySize = 1;
-	unsigned int xSize = 1;
+	struct WindowSize wins = get_config_window_size();
+	unsigned int y = wins.height-95;
+	unsigned int ys = 1;
+	unsigned int xs = 1;
 
-	int isChatOpen = *(int*)(clientBase+0x84660);
-	if (isChatOpen) {
-		yPos -= 20;
-		ySize += 20;
+	int is_chat_open = *(int*)(client_base+0x84660);
+	if (is_chat_open) {
+		y -= 20;
+		ys += 20;
 
-		char msgLen = strlen((char*)(clientBase+0x12b16e0));
-		char globalLen = strlen("global: ");
+		char msg_len = strlen((char*)(client_base+0x12b16e0));
+		char global_len = strlen("global: ");
 
-		xSize = msgLen > globalLen ? msgLen : globalLen;
+		xs = msg_len > global_len ? msg_len : global_len;
 	}
 
 
-	if (chatBuffer) {
-		int memAddress = clientBase+0x840c0;
-		while (memAddress < clientBase+0x840c0+0x74*6) {
-			char* content = (char*)memAddress;
+	if (chat_buffer) {
+		int mem_address = client_base+0x840c0;
+		while (mem_address < client_base+0x840c0+0x74*6) {
+			char* content = (char*)mem_address;
 			if (!content)
 				break;
 
-			if (memAddress != clientBase+0x840c0) {
-				float msgTimestamp = *(float *)memAddress;
+			if (mem_address != client_base+0x840c0) {
+				float msg_timestamp = *(float *)mem_address;
 
-				if (currentTS >= msgTimestamp) {
+				if (current_ts >= msg_timestamp) {
 					break;
 				}
-				memAddress += 0x4;
+				mem_address += 0x4;
 			}
 
-			xSize = xSize >= strlen(content) ? xSize : strlen(content)+1;
-			ySize+=11;
+			xs = xs >= strlen(content) ? xs : strlen(content)+1;
+			ys+=11;
 
-			memAddress += 0x74;
+			mem_address += 0x74;
 		}
 	}
 
-	if (isChatOpen || chatBuffer) {
+	if (is_chat_open || chat_buffer) {
 		long color[] = {0xe0000000};
-		drawtile((long)color, 1, 1, 1, 0x0, 0x0, 10, yPos, 6*xSize, ySize, -1);
+		drawtile((long)color, 1, 1, 1, 0x0, 0x0, 10, y, 6*xs, ys, -1);
 	}
 }
 
-void drawSquare(int x1, int y1, int x2, int y2, int color) {
+void draw_square(int x1, int y1, int x2, int y2, int color) {
 	drawline2d(x1, y1, x2, y1, color);
 	drawline2d(x2, y1, x2, y2, color);
 	drawline2d(x1, y2, x2, y2, color);
@@ -220,12 +220,12 @@ void drawSquare(int x1, int y1, int x2, int y2, int color) {
 }
 
 // hook before interface render
-__declspec(naked) void renderingHookBI() {
+__declspec(naked) void rendering_hook_bi() {
 	asm volatile("pusha");
 
-	renderChatshadow();
+	render_chat_shadow();
 
-	renderStats();
+	render_stats();
 	//drawProgressBar(0.8, 0xff454545, 0xffffff33);
 
 	asm volatile("popa");
@@ -238,7 +238,7 @@ __declspec(naked) void renderingHookBI() {
 
 		"add $0x32f05, %%esi\n\t"
 		"jmp *%%esi"
-		:: "r" (clientBase) //probably we can change it later, im tired rn
+		:: "r" (client_base) //probably we can change it later, im tired rn
 	);
 
 	
@@ -246,11 +246,11 @@ __declspec(naked) void renderingHookBI() {
 
 // hook after interface render
 // to render customFontText, you should do this after the interface render
-__declspec(naked) void renderingHookAI() {
+__declspec(naked) void rendering_hook_ai() {
 	asm volatile("pusha");
 
-	renderCustomMessages();
-	drawMenus();
+	render_custom_messages();
+	draw_menus();
 
 	asm volatile("popa");
 	asm volatile(
@@ -258,5 +258,5 @@ __declspec(naked) void renderingHookAI() {
 		"movl 0x85cd0(%%ecx), %%ecx\n\t"
 		"add $0x334b0, %0\n\t"
 		"jmp *%0"
-	:: "r" (clientBase));
+	:: "r" (client_base));
 }
