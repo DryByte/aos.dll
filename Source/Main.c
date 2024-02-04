@@ -1,16 +1,16 @@
-#include "windows.h"
-#include "stdio.h"
+#include <windows.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <enet/enet.h>
-#include <hook.h>
-#include <rendering.h>
-#include <packets.h>
-#include <aos_config.h>
-#include <menu.h>
-#include <inputs.h>
-#include <voxlap.h>
-#include <aos_utils.h>
-#include <modloader.h>
+#include <Hook.h>
+#include <Rendering.h>
+#include <Packets.h>
+#include <AosConfig.h>
+#include <Menu.h>
+#include <Inputs.h>
+#include <Voxlap.h>
+#include <Aos.h>
+#include <Modloader.h>
 
 HANDLE clientBase;
 struct ItemMultitext* LoggerMultitext;

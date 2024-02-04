@@ -1,5 +1,5 @@
-#include <packets.h>
-#include <voxlap.h>
+#include <Packets.h>
+#include <Voxlap.h>
 
 ENetPacket* PacketBuffer;
 ENetPeer* peer;

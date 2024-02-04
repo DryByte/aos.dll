@@ -1,8 +1,8 @@
-#include <rendering.h>
+#include <Rendering.h>
 #include <stdio.h>
-#include <aos_config.h>
-#include <menu.h>
-#include <voxlap.h>
+#include <AosConfig.h>
+#include <Menu.h>
+#include <Voxlap.h>
 
 struct customMessage customMessagesBuffer[4];
 

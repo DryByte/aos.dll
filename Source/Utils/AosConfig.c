@@ -1,4 +1,4 @@
-#include <aos_config.h>
+#include <AosConfig.h>
 
 int CONFIG_X_SIZE;
 int CONFIG_Y_SIZE;

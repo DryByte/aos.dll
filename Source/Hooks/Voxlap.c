@@ -1,4 +1,4 @@
-#include <voxlap.h>
+#include <Voxlap.h>
 #include <stdio.h>
 #include <io.h>
 

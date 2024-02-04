@@ -1,6 +1,6 @@
-#include <inputs.h>
+#include <Inputs.h>
 #include <windows.h>
-#include <menu.h>
+#include <Menu.h>
 
 extern HANDLE clientBase;
 

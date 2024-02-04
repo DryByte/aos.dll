@@ -1,4 +1,4 @@
-#include <hook.h>
+#include <Hook.h>
 
 void createHook(HANDLE clientBase, int address, void* func) {
 	DWORD old_protect;

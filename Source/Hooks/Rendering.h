@@ -1,5 +1,4 @@
 #include <windows.h>
-#include <window.h>
 #include <time.h>
 
 extern HANDLE clientBase;

@@ -1,10 +1,9 @@
-#include <menu.h>
+#include <Menu.h>
 #include <stdio.h>
-#include <rendering.h>
+#include <Rendering.h>
 #include <windows.h>
-#include <window.h>
-#include <voxlap.h>
-#include <aos_config.h>
+#include <Voxlap.h>
+#include <AosConfig.h>
 
 #define MAX(x,y) (x>y) ? x : y
 #define MIN(x,y) (x<y) ? x : y

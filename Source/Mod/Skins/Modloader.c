@@ -1,8 +1,8 @@
-#include <modloader.h>
-#include <menu.h>
+#include <Modloader.h>
+#include <Menu.h>
 #include <stdio.h>
-#include <voxlap.h>
-#include <aos_utils.h>
+#include <Voxlap.h>
+#include <Aos.h>
 
 HANDLE fileHandler;
 WIN32_FIND_DATAA fileDesc;

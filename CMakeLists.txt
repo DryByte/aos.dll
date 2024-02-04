@@ -6,8 +6,7 @@ set(CMAKE_CXX_COMPILER "/usr/bin/i686-w64-mingw32-g++")
 
 project(aos.dll)
 
-file(GLOB srcFiles "./src/*.c")
+add_library(aos SHARED)
 
-add_library(aos SHARED ${srcFiles} main.c)
-
-target_include_directories(aos PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_subdirectory(Source)
+target_include_directories(aos PUBLIC ${PROJECT_SOURCE_DIR}/Extern/enet/include)
