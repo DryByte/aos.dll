@@ -137,8 +137,8 @@ void kpzload(char* filepath, long *pic, int xsiz, int ysiz) {
 	fread(coolbuf, len, 1, fp);
 	fclose(fp);
 
-	long* loadbuf = malloc(xsiz*4*ysiz);
-	*pic = *loadbuf;
+	long loadbuf = (long)malloc(xsiz*4*ysiz);
+	*pic = loadbuf;
 
 	int nsize = xsiz*4;
 
@@ -156,8 +156,8 @@ void kpzload(char* filepath, long *pic, int xsiz, int ysiz) {
 	free(coolbuf);
 
 	if (result < 0) {
-		free(loadbuf);
 		*pic = 0;
+		free((long*)loadbuf);
 	}
 }
 
