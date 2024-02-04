@@ -5,11 +5,11 @@ This is a project aiming to add new things to classic Voxlap using DLL injection
 - Customizable FPS (get rid of the 60fps cap)
 - Support VersionInfo packet
 - Support Extension for messages on screen
+- Modloader support (in game skin change)
+- Different skin per team, add suffix to the skin: \_G/\_B
 
 ### Building
-Get enet [1.3.1](https://github.com/lsalzman/enet/releases/tag/v1.3.1)'s include folder and paste it on include directory.
-
-Then just create the build directory, and build using cmake and make
+Create the build directory, and built it ;)
 
 ## Contributing
 Feel free to fork, star, report issues, open PRs, etc.
