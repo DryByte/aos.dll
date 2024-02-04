@@ -53,5 +53,5 @@ struct packetHandshakeBack
 	int challenge;
 };
 
-void packetHandler(void);
+void packet_hook(void);
 void sendMsg(char *msg);

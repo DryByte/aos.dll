@@ -80,10 +80,7 @@ void sendHandshakeBack(int fds) {
 	free(packetHandBack);
 }
 
-__declspec(naked) void packetHandler() {
-	asm volatile("movl %%esi, %0": "=r" (PacketBuffer));
-	asm volatile("movl 40(%%esp), %0": "=r" (peer));
-
+int packet_handler() {
 	if (PacketBuffer->data[0] != 2)
 		printf("%i\n", PacketBuffer->data[0]);
 
@@ -135,8 +132,19 @@ __declspec(naked) void packetHandler() {
 	}
 
 	int leaveoffset = clientBase+0x343ed;
-	if (skip == 1)
+	if (skip == 1) {
+		printf("fds?\n");
 		leaveoffset = clientBase+0x355f2;
+	}
+
+	return leaveoffset;
+}
+
+__declspec(naked) void packet_hook() {
+	asm volatile("movl %%esi, %0": "=r" (PacketBuffer));
+	asm volatile("movl 40(%%esp), %0": "=r" (peer));
+
+	int leaveoffset = packet_handler();
 
 	asm volatile(
 		"movl %0, %%esi\n\t"
