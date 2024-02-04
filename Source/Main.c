@@ -1,7 +1,7 @@
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <enet/enet.h>
 #include <Hook.h>
 #include <Rendering.h>
 #include <Packets.h>
@@ -12,7 +12,8 @@
 #include <Aos.h>
 #include <Modloader.h>
 
-HANDLE clientBase;
+HANDLE clientHandle;
+int clientBase; // this is hacky, should we just change the original clienthandle to int?
 struct ItemMultitext* LoggerMultitext;
 
 void testBtnEventHandler(struct Menu* menu, struct ItemClickableButton* btn) {
@@ -25,13 +26,14 @@ void testBtnEventHandler(struct Menu* menu, struct ItemClickableButton* btn) {
 
 DWORD WINAPI LoopFunction(LPVOID lpParam)
 {
-	HANDLE aos = GetCurrentProcess();
-	clientBase = GetModuleHandle(NULL);
+	clientHandle = GetModuleHandle(NULL);
 
-	if(clientBase == NULL) {
+	if(clientHandle == NULL) {
 		printf("Cant load the module\n");
 		return 0;
 	}
+
+	clientBase = (int)clientHandle;
 
 	printf("\n----------------\n");
 	printf("DLL Injected :D\n");
@@ -69,7 +71,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	hptxt->xPos = 25;
 	hptxt->yPos = 10;
 
-	struct ItemSlide* slidehp = createSlide(meirrita, 0, 255, (clientBase+0x7ceb4+(*(int*)(clientBase+0x13b1cf0))*0x3a8));
+	struct ItemSlide* slidehp = createSlide(meirrita, 0, 255, (int*)(clientBase+0x7ceb4+(*(int*)(clientBase+0x13b1cf0))*0x3a8));
 	slidehp->xPos = 25;
 	slidehp->yPos = 20;
 	slidehp->xSize = 50;
@@ -81,7 +83,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	itemfds->xPos = -50;
 	itemfds->yPos = -20;
 
-	struct ItemText* itemfds2 = createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
+	createText(mfds, 1, 0xff55ff, "outro texto sla tlg?");
 	struct ItemClickableButton* btnfds = createClickableButton(mfds, "CLICK ME!", &testBtnEventHandler);
 	btnfds->xPos = -90;
 	btnfds->yPos = -15;

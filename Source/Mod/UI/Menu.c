@@ -305,7 +305,7 @@ int checkCursorOver(int areaX1, int areaY1, int areaX2, int areaY2) {
 void drawCursor() {
 	// todo load mouse cursor image
 	long color[] = {0xffffffff};
-	drawtile(color, 1, 1, 1, 0x0, 0x0, mouseXPos, mouseYPos, 15, 15, -1);
+	drawtile((long)color, 1, 1, 1, 0x0, 0x0, mouseXPos, mouseYPos, 15, 15, -1);
 }
 
 int wordLength(int wordpos, int maxWordlen, char* buffer) {
@@ -350,18 +350,18 @@ void drawMenus() {
 
 		int itemsLen = getNextAvailableItemId(menu);
 
-		int largestX = MAX(menu->xSize, strlen(menu->title)*8);
+		int largestX = MAX(menu->xSize, (int)strlen(menu->title)*8);
 		int largestY = 8;
 
 		// title background
 		long color[] = {0xe0000000};
-		drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y, menu->xSize, largestY, -1);
+		drawtile((long)color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y, menu->xSize, largestY, -1);
 		drawText(menu->x, menu->y, 0xffffff, menu->title);
 
 		if (!menu->minimized) {
 			// content background
 			color[0] = 0xc0000000;
-			drawtile(color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+8, menu->xSize, menu->ySize-8, -1);
+			drawtile((long)color, 1, 1, 1, 0x0, 0x0, menu->x, menu->y+8, menu->xSize, menu->ySize-8, -1);
 		}
 
 		for (int itemId = 0; itemId < itemsLen; itemId++) {
@@ -462,7 +462,7 @@ void drawMenus() {
 						color[0] = clickBtn->color;
 					}
 
-					drawtile(color, 1, 1, 1, 0x0, 0x0, clickBtnXpos, clickBtnYpos, clickBtn->xSize, clickBtn->ySize, -1);
+					drawtile((long)color, 1, 1, 1, 0x0, 0x0, clickBtnXpos, clickBtnYpos, clickBtn->xSize, clickBtn->ySize, -1);
 
 					int textlen = strlen(clickBtn->text);
 					drawText(clickBtnXpos+clickBtn->xSize/2-textlen*3, clickBtnYpos+clickBtn->ySize/2-4, 0x0, clickBtn->text);
@@ -513,7 +513,7 @@ void drawMenus() {
 						if (multitext->selected) {
 							if (multitext->selected->next == lastNode->next && multitext->selected->previous == lastNode->previous) {
 								color[0] = 0xff606060;
-								drawtile(color, 1, 1, 1, 0x0, 0x0, mtxPos, mtyPos+i*8, mtxSize, txtLines*8, -1);
+								drawtile((long)color, 1, 1, 1, 0x0, 0x0, mtxPos, mtyPos+i*8, mtxSize, txtLines*8, -1);
 							}
 						}
 
@@ -604,7 +604,7 @@ void drawMenus() {
 						}
 
 						color[0] = input->backgroundColor;
-						drawtile(color, 1, 1, 1, 0x0, 0x0, inpXPos, inpYPos, input->xSize, input->ySize, -1);
+						drawtile((long)color, 1, 1, 1, 0x0, 0x0, inpXPos, inpYPos, input->xSize, input->ySize, -1);
 						int displayLen = input->xSize/6;
 						char textDisplay[displayLen];
 
@@ -646,7 +646,7 @@ void drawMenus() {
 					int slideYPos = slide->yPos+menu->y;
 
 					color[0] = slide->backgroundColor;
-					drawtile(color, 1, 1, 1, 0x0, 0x0, slideXPos, slideYPos, slide->xSize, slide->ySize, -1);
+					drawtile((long)color, 1, 1, 1, 0x0, 0x0, slideXPos, slideYPos, slide->xSize, slide->ySize, -1);
 
 					int sliderPosX = slideXPos;
 					int sliderPosY = slideYPos;
@@ -698,7 +698,7 @@ void drawMenus() {
 					}
 
 					color[0] = slide->sliderColor;
-					drawtile(color, 1, 1, 1, 0x0, 0x0, sliderPosX, sliderPosY, sliderSizeX, sliderSizeY, -1);
+					drawtile((long)color, 1, 1, 1, 0x0, 0x0, sliderPosX, sliderPosY, sliderSizeX, sliderSizeY, -1);
 
 					if (slide->showStatus) {
 						char cool[10];

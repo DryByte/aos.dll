@@ -1,6 +1,6 @@
 #include <windows.h>
 
-extern HANDLE clientBase;
+extern int clientBase;
 
 enum KV6TYPE {
 	SPADE_3 = 0,

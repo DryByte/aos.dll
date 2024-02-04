@@ -17,7 +17,7 @@ const char kv6filenames[37][15] = {
 };
 
 void wordToLowerCase(char* s) {
-	for (int c = 0; c < strlen(s); c++) {
+	for (unsigned int c = 0; c < strlen(s); c++) {
 		*(s+c) = tolower(s[c]);
 	}
 }
@@ -98,13 +98,12 @@ void loadSkinImages(char* skin_name) {
 			if (!offset)
 				continue;
 
-			*((long*)(clientBase+offset)) = bmpfile;
+			*((long*)(clientBase+offset)) = (int)bmpfile;
 		}
 	} while(FindNextFile(pngHandle, &pngDesc));
 }
 
 void loadSkin(char* skin_name) {
-	WIN32_FIND_DATAA skinDesc;
 	char directory[256];
 	sprintf(directory, "./modloader/%s/kv6", skin_name);
 
@@ -171,7 +170,7 @@ void loadSkin(char* skin_name) {
 				break;
 		}
 
-		*(int*)(clientBase+0x13cf840+i*4) = kv6;
+		*(int*)(clientBase+0x13cf840+i*4) = (int)kv6;
 	}
 }
 

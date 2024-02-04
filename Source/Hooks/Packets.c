@@ -1,5 +1,7 @@
 #include <Packets.h>
 #include <Voxlap.h>
+#include <Rendering.h>
+#include <Menu.h>
 
 ENetPacket* PacketBuffer;
 ENetPeer* peer;
@@ -90,34 +92,39 @@ __declspec(naked) void packetHandler() {
 	int skip = 0;
 	switch(PacketBuffer->data[0]) {
 		case 13:
-			struct packetBlockAction* blockAction = (struct packetBlockAction*)PacketBuffer->data;
+			{
+				struct packetBlockAction* blockAction = (struct packetBlockAction*)PacketBuffer->data;
 
-			if (blockAction->actionType == 0) {
-				long block = getcube(blockAction->xPos, blockAction->yPos, blockAction->zPos);
+				if (blockAction->actionType == 0) {
+					long block = getcube(blockAction->xPos, blockAction->yPos, blockAction->zPos);
 
-				if (block != 0) {
-					long color = *(long*)(clientBase+0x7ce8c+(blockAction->playerId*936));
+					if (block != 0) {
+						long color = *(long*)(clientBase+0x7ce8c+(blockAction->playerId*936));
 
-					*(long*)block = color|0x7f000000;
-					skip = 1;
+						*(long*)block = color|0x7f000000;
+						skip = 1;
+					}
 				}
 			}
 			break;
 		case 17:
-			uint8_t* buf = (uint8_t*)malloc(PacketBuffer->dataLength*sizeof(uint8_t));
-			memcpy(buf, PacketBuffer->data, PacketBuffer->dataLength*sizeof(uint8_t));
-			struct packetMsg* p = (struct packetMsg*)buf;
+			{
+				uint8_t* buf = (uint8_t*)malloc(PacketBuffer->dataLength*sizeof(uint8_t));
+				memcpy(buf, PacketBuffer->data, PacketBuffer->dataLength*sizeof(uint8_t));
+				struct packetMsg* p = (struct packetMsg*)buf;
 
-			printf("%i\n", p->chat_type);
+				printf("%i\n", p->chat_type);
 
-			addNewText(LoggerMultitext, p->msg);
-			if (p->chat_type > 2)
-				addCustomMessage(p->chat_type, p->msg);
-
+				addNewText(LoggerMultitext, p->msg);
+				if (p->chat_type > 2)
+					addCustomMessage(p->chat_type, p->msg);
+			}
 			break;
 		case 31:
-			struct packetHandshakeBack* fds = (struct packetHandshakeBack*)PacketBuffer->data;
-			sendHandshakeBack(fds->challenge);
+			{
+				struct packetHandshakeBack* fds = (struct packetHandshakeBack*)PacketBuffer->data;
+				sendHandshakeBack(fds->challenge);
+			}
 			break;
 		case 33:
 			sendClientInfo();
@@ -127,7 +134,7 @@ __declspec(naked) void packetHandler() {
 			break;
 	}
 
-	HANDLE leaveoffset = clientBase+0x343ed;
+	int leaveoffset = clientBase+0x343ed;
 	if (skip == 1)
 		leaveoffset = clientBase+0x355f2;
 

@@ -1,9 +1,10 @@
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <enet/enet.h>
 
-extern HANDLE clientBase;
+extern int clientBase;
 
 struct __attribute__((__packed__)) packetBlockAction
 {

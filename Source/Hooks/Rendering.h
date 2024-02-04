@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <time.h>
 
-extern HANDLE clientBase;
+extern int clientBase;
 
 struct customMessage {
 	time_t timestamp;

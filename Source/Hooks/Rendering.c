@@ -163,15 +163,14 @@ void renderCustomMessages() {
 }
 
 void renderChatshadow() {
-	char *chatBuffer = (char*)(clientBase+0x840c0);
+	char chatBuffer = *(char*)(clientBase+0x840c0);
 	float currentTS = *(float*)(clientBase+0x13cf8d4);
 
 	struct WindowSize wins = getConfigWindowSize();
-	int yPos = wins.height-95;
-	int ySize = 1;
-	int xSize = 1;
+	unsigned int yPos = wins.height-95;
+	unsigned int ySize = 1;
+	unsigned int xSize = 1;
 
-	int hasChatLog = *chatBuffer;
 	int isChatOpen = *(int*)(clientBase+0x84660);
 	if (isChatOpen) {
 		yPos -= 20;
@@ -184,30 +183,32 @@ void renderChatshadow() {
 	}
 
 
-	if (hasChatLog) {
-		while (chatBuffer < clientBase+0x840c0+0x74*6) {
-			if (!*chatBuffer)
+	if (chatBuffer) {
+		int memAddress = clientBase+0x840c0;
+		while (memAddress < clientBase+0x840c0+0x74*6) {
+			char* content = (char*)memAddress;
+			if (!content)
 				break;
 
-			if (chatBuffer != clientBase+0x840c0) {
-				float *msgTimestamp = (float *)chatBuffer;
+			if (memAddress != clientBase+0x840c0) {
+				float msgTimestamp = *(float *)memAddress;
 
-				if (currentTS >= *msgTimestamp) {
+				if (currentTS >= msgTimestamp) {
 					break;
 				}
-				chatBuffer += 0x4;
+				memAddress += 0x4;
 			}
 
-			xSize = xSize >= strlen(chatBuffer) ? xSize : strlen(chatBuffer)+1;
+			xSize = xSize >= strlen(content) ? xSize : strlen(content)+1;
 			ySize+=11;
 
-			chatBuffer += 0x74;
+			memAddress += 0x74;
 		}
 	}
 
-	if (isChatOpen || hasChatLog) {
+	if (isChatOpen || chatBuffer) {
 		long color[] = {0xe0000000};
-		drawtile(color, 1, 1, 1, 0x0, 0x0, 10, yPos, 6*xSize, ySize, -1);
+		drawtile((long)color, 1, 1, 1, 0x0, 0x0, 10, yPos, 6*xSize, ySize, -1);
 	}
 }
 

@@ -2,7 +2,7 @@
 #include <windows.h>
 #include <Menu.h>
 
-extern HANDLE clientBase;
+extern int clientBase;
 
 __declspec(naked) void hookInputs() {
 	handleKeyboard();

@@ -1,6 +1,6 @@
 #include <Hook.h>
 
-void createHook(HANDLE clientBase, int address, void* func) {
+void createHook(int clientBase, int address, void* func) {
 	DWORD old_protect;
 
 	unsigned char* hookLoc = (unsigned char*)(clientBase+address);

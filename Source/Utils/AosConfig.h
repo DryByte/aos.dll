@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <stdint.h>
 
-extern HANDLE clientBase;
+extern int clientBase;
 
 struct WindowSize {
 	int width;

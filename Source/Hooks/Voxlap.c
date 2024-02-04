@@ -104,10 +104,15 @@ long keyread() {
 }
 
 struct aoskv6data* loadkv6(char* filename) {
+	struct aoskv6data* ret;
+
 	asm volatile(
-		"mov %0, %%eax\n\t"
-		"call *%1"
-	:: "r"(filename), "r"(clientBase+0x257e0));
+		"mov %1, %%eax\n\t"
+		"call *%2\n\t"
+		"mov %%eax, %0"
+	: "=r" (ret) : "r"(filename), "r"(clientBase+0x257e0));
+
+	return ret;
 }
 
 // this comes from kplib, but its bundledwith voxlap
@@ -133,7 +138,7 @@ void kpzload(char* filepath, long *pic, int xsiz, int ysiz) {
 	fclose(fp);
 
 	long* loadbuf = malloc(xsiz*4*ysiz);
-	*pic = loadbuf;
+	*pic = *loadbuf;
 
 	int nsize = xsiz*4;
 

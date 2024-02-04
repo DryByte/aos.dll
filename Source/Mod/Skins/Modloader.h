@@ -1,6 +1,6 @@
 #pragma once
 #include <windows.h>
 
-extern HANDLE clientBase;
+extern int clientBase;
 
 void initmodloader();
