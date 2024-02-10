@@ -503,6 +503,9 @@ void draw_menus() {
 							continue;
 						}
 
+						if (!lastNode)
+							continue;
+
 						int txtSizeX = strlen(lastNode->text)*6; // draw_text uses 6x8
 						int txtLines = (int)(strlen(lastNode->text)*6/(float)mtxSize+1);
 
