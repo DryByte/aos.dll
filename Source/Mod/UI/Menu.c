@@ -247,6 +247,12 @@ void hide_all_menus() {
 	}
 }
 
+
+// should we move this to voxlap?
+int handle_wheel() {
+	return *(int*)(client_base+0x12b1b58);
+}
+
 //returns 1 if an interaction happened
 int handle_cursor() {
 	int mx;
@@ -492,6 +498,15 @@ void draw_menus() {
 						mtxSize = menu->x_size;
 					if (mtySize <= 0)
 						mtySize = menu->y_size-10;
+
+					if (check_cursor_over(mtxPos, mtyPos, mtxPos+mtxSize, mtyPos+mtySize)) {
+						int wheel_status = handle_wheel();
+						if (wheel_status > 0 && multitext->current_pos > 0) {
+							multitext->current_pos -= 1;
+						} else if (wheel_status < 0) {
+							multitext->current_pos += 1;
+						}
+					}
 
 					int availableLines = mtySize/8;
 					int currentNodeId = 0; // reverse
