@@ -527,6 +527,9 @@ void draw_menus() {
 							memset(copyTxtNode, 0, 128);
 
 							for (int characterNode = 0; characterNode < txtSizeX/6; characterNode++) {
+								if ((i+1)*8 >= mtySize)
+									continue;
+
 								if (lastNode->text[characterNode] == ' ') {
 									copyTxtNode[characterInLine] = ' ';
 									characterInLine += 1;
@@ -575,7 +578,8 @@ void draw_menus() {
 								characterNode+=wordlen-1;
 							}
 
-							draw_text(mtxPos, mtyPos+i*8, multitext->color, copyTxtNode);
+							if ((i+1)*8 < mtySize)
+								draw_text(mtxPos, mtyPos+i*8, multitext->color, copyTxtNode);
 						} else {
 							draw_text(mtxPos, mtyPos+i*8, multitext->color, lastNode->text);
 						}
