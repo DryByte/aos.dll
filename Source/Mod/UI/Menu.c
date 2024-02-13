@@ -204,6 +204,7 @@ struct Menu* create_menu(int x, int y, int outline, char* title) {
 	menu->hidden = 1;
 	menu->pin = 0;
 	menu->minimized = 0;
+	menu->always_hidden = 0;
 	strncpy(menu->title, title, 32);
 
 	menus[menu_id] = menu;
@@ -233,6 +234,9 @@ void show_all_menus() {
 
 	for (int menu_id = 0; menu_id < menusLen; menu_id++) {
 		struct Menu* menu = (struct Menu*)menus[menu_id];
+		if (menu->always_hidden)
+			continue;
+
 		menu->hidden = 0;
 	}
 }
