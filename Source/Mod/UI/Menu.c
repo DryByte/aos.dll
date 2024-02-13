@@ -297,9 +297,6 @@ void handle_keyboard() {
 	if (currentLen > 127)
 		return;
 
-	if (currentLen >= activeInputItem->max_length)
-		return;
-
 	if(key == 8) {
 		activeInputItem->input[currentLen-1] = 0;
 		return;
@@ -307,6 +304,9 @@ void handle_keyboard() {
 		activeInputItem = 0;
 		return;
 	}
+
+	if (currentLen >= activeInputItem->max_length)
+		return;
 
 	activeInputItem->input[currentLen] = key;
 
