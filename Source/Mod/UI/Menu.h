@@ -67,6 +67,7 @@ struct ItemTextInput
 	int id;
 	char placeholder[128];
 	char input[128];
+	int max_length;
 	int x_size, y_size;
 	int x_pos, y_pos;
 };

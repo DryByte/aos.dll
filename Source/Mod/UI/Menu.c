@@ -158,6 +158,7 @@ struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_siz
 	input->x_pos = 0;
 	input->y_pos = 0;
 	input->background_color = background_color;
+	input->max_length = 128;
 	strncpy(input->placeholder, placeholder, 128);
 
 	menu->items[id] = input;
@@ -294,6 +295,9 @@ void handle_keyboard() {
 
 	int currentLen = strlen(activeInputItem->input);
 	if (currentLen > 127)
+		return;
+
+	if (currentLen >= activeInputItem->max_length)
 		return;
 
 	if(key == 8) {
