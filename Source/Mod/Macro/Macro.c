@@ -68,6 +68,9 @@ int get_id_by_key(unsigned char key) {
 }
 
 void handle_macros() {
+	if (*(int*)(client_base+0x84660))
+		return;
+
 	int array_size = get_available_macro_id();
 
 	for (int i = 0; i < array_size; i++) {
