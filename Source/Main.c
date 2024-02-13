@@ -11,6 +11,7 @@
 #include <Voxlap.h>
 #include <Aos.h>
 #include <Modloader.h>
+#include <Macro.h>
 
 HANDLE clientHandle;
 int client_base; // this is hacky, should we just change the original clienthandle to int?
@@ -48,6 +49,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	struct Menu* LoggerMenu = create_menu(300, 200, 0, "Logger");
 	LoggerMultitext = create_multitext(LoggerMenu, 0xffffff);
 
+	initmacro();
 	initmodloader();
 	load_aos_config();
 	struct WindowSize fds = get_config_window_size();

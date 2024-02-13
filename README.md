@@ -7,6 +7,7 @@ This is a project aiming to add new things to classic Voxlap using DLL injection
 - Support Extension for messages on screen
 - Modloader support (in game skin change)
 - Different skin per team, add suffix to the skin: \_G/\_B
+- Macros
 
 ### Building
 Create the build directory, and built it ;)

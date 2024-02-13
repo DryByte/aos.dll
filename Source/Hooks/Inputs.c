@@ -1,11 +1,13 @@
 #include <Inputs.h>
 #include <windows.h>
 #include <Menu.h>
+#include <Macro.h>
 
 extern int client_base;
 
 __declspec(naked) void hook_inputs() {
 	handle_keyboard();
+	handle_macros();
 
 	asm volatile(
 		"push %%edi\n\t"
