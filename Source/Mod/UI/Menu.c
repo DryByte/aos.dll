@@ -85,6 +85,9 @@ void add_new_text(struct ItemMultitext* multitext, char* text) {
 	int strLen = strlen(text);
 	struct MultitextNode* node = malloc(sizeof(struct MultitextNode) + (strLen < 128 ? strLen : 128));
 
+	if (multitext->current_pos != 0)
+		multitext->current_pos += 1;
+
 	node->next = 0;
 	strncpy(node->text, text, 128);
 
