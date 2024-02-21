@@ -9,8 +9,8 @@ game_state old_state;
 
 const char tool_descriptions[4][MAX_TEXT] = {
     "Digging",
-    "",
     "Building",
+    "",
     "Throwing nades"
 };
 const char weapon_descriptions[3][MAX_TEXT] = {
@@ -70,6 +70,7 @@ game_state get_current_game_state() {
 void update_presence(){
     if (presence_enabled)
     {
+        player_id = *((int*)(client_base+0x13b1cf0));
         // int64_t playtime_start = time(0); // map change
         game_state state = get_current_game_state();
 
@@ -78,7 +79,7 @@ void update_presence(){
             (state.current_weapon == old_state.current_weapon) &&
             (state.intel_holder_t1 == old_state.intel_holder_t1) &&
             (state.intel_holder_t2 == old_state.intel_holder_t2)) 
-        { return;}
+        { return; }
 
         old_state = state;
         DiscordRichPresence presence;
@@ -87,19 +88,41 @@ void update_presence(){
         presence.state = "Map placeholder";
         // presence.startTimestamp = playtime_start;
 
-        if (state.current_tool != 2) {
-            presence.largeImageKey = tool_images[state.current_tool];
-            presence.largeImageText = tool_descriptions[state.current_tool];
+        if (player_id == -1) {
+            presence.largeImageKey = "largeimagekey_loading";
+            presence.largeImageText = "Loading map...";
         }
         else {
-            presence.largeImageKey = weapon_images[state.current_weapon];
-            presence.largeImageText = weapon_descriptions[state.current_weapon];
+            if (state.current_team == -2) {
+                presence.largeImageKey = "largeimagekey_teamselection";
+                presence.largeImageText = "Choosing team";
+            }
+            else if (state.current_team == -1) {
+                presence.largeImageKey = "largeimagekey_spectating";
+                presence.largeImageText = "Spectating";
+            }
+            else {
+                if (state.current_tool != 2) {
+                    presence.largeImageKey = tool_images[state.current_tool];
+                    presence.largeImageText = tool_descriptions[state.current_tool];
+                }
+                else {
+                    presence.largeImageKey = weapon_images[state.current_weapon];
+                    presence.largeImageText = weapon_descriptions[state.current_weapon];
+                }
+                
+                if (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id) {
+                    presence.smallImageKey = "smallimagekey_intel";
+                    presence.smallImageText = "Holds enemy intel!";
+                }
+                else {
+                    presence.smallImageKey = "ace_of_spades";
+                    presence.smallImageText = "Ace Of Spades";
+                }
+            }
         }
-        
-        if (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id)
-            presence.smallImageKey = "smallimagekey_intel";
-        else
-            presence.smallImageKey = "ace_of_spades";
+
+
         Discord_UpdatePresence(&presence);
     }
     else {
@@ -108,8 +131,6 @@ void update_presence(){
 }
 
 void initrichpresence() {
-    player_id = *((int*)(client_base+0x13b1cf0));
-
     discord_init();
     update_presence();
 
