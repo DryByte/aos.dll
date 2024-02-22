@@ -1,7 +1,5 @@
 #include <discord_rpc.h>
 
-#define MAX_TEXT 100
-
 extern int presence_enabled;
 extern int client_base;
 

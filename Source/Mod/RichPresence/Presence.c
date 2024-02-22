@@ -7,24 +7,24 @@ const char* app_id = "699358451494682714";
 int player_id = 0;
 game_state old_state;
 
-const char tool_descriptions[4][MAX_TEXT] = {
+const char* tool_descriptions[4] = {
     "Digging",
     "Building",
     "",
     "Throwing nades"
 };
-const char weapon_descriptions[3][MAX_TEXT] = {
+const char* weapon_descriptions[3]= {
     "Rifle",
     "SMG",
     "Shotgun"
 };
-const char tool_images[4][MAX_TEXT] = {
+const char* tool_images[4] = {
     "largeimagekey_spade",
     "largeimagekey_block",
     "",
     "largeimagekey_grenade"
 };
-const char weapon_images[3][MAX_TEXT] = {
+const char* weapon_images[3] = {
     "largeimagekey_rifle",
     "largeimagekey_smg",
     "largeimagekey_shotgun"
