@@ -45,6 +45,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	create_hook(client_base, 0x32f00, rendering_hook_bi, 6);
 	create_hook(client_base, 0x334aa, rendering_hook_ai, 6);
 	create_hook(client_base, 0x3126d, hook_inputs, 6);
+	create_hook(client_base, 0x2bb10, spectator_movement_hook, 11);
 
 	struct Menu* LoggerMenu = create_menu(300, 200, 0, "Logger");
 	LoggerMultitext = create_multitext(LoggerMenu, 0xffffff);
