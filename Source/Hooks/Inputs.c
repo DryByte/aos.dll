@@ -2,12 +2,14 @@
 #include <windows.h>
 #include <Menu.h>
 #include <Macro.h>
+#include <Aos.h>
 
 extern int client_base;
 
 __declspec(naked) void hook_inputs() {
 	handle_keyboard();
 	handle_macros();
+	handle_spectate_input();
 
 	asm volatile(
 		"push %%edi\n\t"

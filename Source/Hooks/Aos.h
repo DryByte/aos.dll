@@ -52,3 +52,5 @@ void load_player_team_skin(int player_id);
 void load_player_weapon_skin(int player_id);
 void load_player_skins();
 void load_image_files();
+void spectator_movement_hook();
+void handle_spectate_input();
