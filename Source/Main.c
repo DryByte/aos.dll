@@ -59,9 +59,14 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	printf("%i\n", get_config_volume());
 	printf("%.2f\n", get_config_mouse_sensitivity());
 
+
+	struct player_struct* p_ar = (void*)(client_base+0x7cb70);
 	int isMenuHidden = 0;
 	while (1) {
 		if (GetAsyncKeyState(VK_MENU)) {
+			printf("Player #0: %i, is_alive: %i, hp: %i %s\n", p_ar[0].player_id, p_ar[0].is_alive, p_ar[0].hp, p_ar[0].player_name);
+			printf("Player #1: %i, is_alive: %i, hp: %i %s\n", p_ar[1].player_id, p_ar[1].is_alive, p_ar[1].hp, p_ar[1].player_name);
+			printf("Player #2: %i, is_alive: %i, hp: %i %s\n", p_ar[2].player_id, p_ar[2].is_alive, p_ar[2].hp, p_ar[2].player_name);
 			if (isMenuHidden) {
 				isMenuHidden = 0;
 				show_all_menus();
