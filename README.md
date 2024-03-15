@@ -8,9 +8,10 @@ This is a project aiming to add new things to classic Voxlap using DLL injection
 - Modloader support (in game skin change)
 - Different skin per team, add suffix to the skin: \_G/\_B
 - Macros
+- First person spectator mode (press V)
 
 ### Building
-Create the build directory, and built it ;)
+Create the build directory, and build it ;)
 
 ## Contributing
 Feel free to fork, star, report issues, open PRs, etc.

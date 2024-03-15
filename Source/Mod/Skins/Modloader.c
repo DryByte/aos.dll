@@ -132,6 +132,10 @@ void load_skin(char* skin_name) {
 				sprintf(tmpdir, "%s/%s.kv6", directory, kv6filenamesCopy[i]);
 			}
 		} else {
+			char* _skin = strrchr(kv6filenamesCopy[i], '_');
+			if (_skin && (_skin[1] == 'b' || _skin[1] == 'g'))
+				color = _skin[1];
+
 			firsttry = 1;
 		}
 
