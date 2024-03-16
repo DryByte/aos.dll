@@ -3,7 +3,7 @@
 extern int presence_enabled;
 extern int client_base;
 
-void initrichpresence();
+void init_rich_presence();
 void update_presence();
 
 void validate_player_count();

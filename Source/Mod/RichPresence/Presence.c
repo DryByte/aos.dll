@@ -11,8 +11,8 @@ const char* app_id = "699358451494682714";
 int player_id = 0;
 int validator_enabled = 0;
 
-int player_count = 0;
-int old_player_count = 0;
+int player_count = 1;
+int old_player_count = 1;
 
 const char* tool_descriptions[4] = {
     "Digging",
@@ -38,23 +38,23 @@ const char* weapon_images[3] = {
 };
 
 // handlers that inform about something may be good for logger module perhaps?
-void handle_discord_ready(const DiscordUser* user) { return; }
-void handle_discord_disconnected(int error_code, const char* message) { return; }
-void handle_discord_error(int error_code, const char* message) { return; }
-void handle_discord_join(const char* join_secret) { return; }
-void handle_discord_spectate(const char* spectate_secret) { return; }
-void handle_discord_join_request(const DiscordUser* request) { return; }
+// void handle_discord_ready(const DiscordUser* user) { return; }
+// void handle_discord_disconnected(int error_code, const char* message) { return; }
+// void handle_discord_error(int error_code, const char* message) { return; }
+// void handle_discord_join(const char* join_secret) { return; }
+// void handle_discord_spectate(const char* spectate_secret) { return; }
+// void handle_discord_join_request(const DiscordUser* request) { return; }
 
 void discord_init() {
-    DiscordEventHandlers handlers;
-    handlers.ready = handle_discord_ready;
-    handlers.disconnected = handle_discord_disconnected;
-    handlers.errored = handle_discord_error;
-    handlers.joinGame = handle_discord_join;
-    handlers.spectateGame = handle_discord_spectate;
-    handlers.joinRequest = handle_discord_join_request;
+    // DiscordEventHandlers handlers;
+    // handlers.ready = handle_discord_ready;
+    // handlers.disconnected = handle_discord_disconnected;
+    // handlers.errored = handle_discord_error;
+    // handlers.joinGame = handle_discord_join;
+    // handlers.spectateGame = handle_discord_spectate;
+    // handlers.joinRequest = handle_discord_join_request;
 
-    Discord_Initialize(app_id, &handlers, 1, NULL);
+    Discord_Initialize(app_id, NULL, 1, NULL);
 }
 
 void discord_shutdown() {
@@ -158,7 +158,7 @@ void update_presence(){
     }
 }
 
-void initrichpresence() {
+void init_rich_presence() {
     discord_init();
     update_presence();
 

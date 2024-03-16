@@ -1,3 +1,6 @@
-[submodule "Extern/discord-rpc"]
-	path = Extern/discord-rpc
-	url = https://github.com/discord/discord-rpc
+[submodule "Extern/json-c"]
+	path = Extern/json-c
+	url = https://github.com/json-c/json-c
+[submodule "Extern/wine-discord-rpc"]
+	path = Extern/wine-discord-rpc
+	url = https://github.com/DryByte/wine-discord-rpc
