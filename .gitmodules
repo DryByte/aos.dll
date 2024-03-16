@@ -1,0 +1,3 @@
+[submodule "Extern/json-c"]
+	path = Extern/json-c
+	url = https://github.com/json-c/json-c.git
