@@ -42,6 +42,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	VirtualProtect((void*)lengthLimit, 1, PAGE_EXECUTE_READWRITE, &_old_protect);
 	*lengthLimit = 1;
 
+	create_hook(client_base, 0x33b12, map_packet_hook, 5);
 	create_hook(client_base, 0x343e4, packet_hook, 7);
 	create_hook(client_base, 0x32f00, rendering_hook_bi, 6);
 	create_hook(client_base, 0x334aa, rendering_hook_ai, 6);

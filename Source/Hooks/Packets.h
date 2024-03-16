@@ -53,5 +53,6 @@ struct packet_handshake_back
 	int challenge;
 };
 
+void map_packet_hook(void);
 void packet_hook(void);
 void send_msg(char *msg);

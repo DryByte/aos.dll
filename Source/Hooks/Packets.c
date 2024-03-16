@@ -149,6 +149,20 @@ int packet_handler() {
 	return leaveoffset;
 }
 
+// when handling map and state data, it uses a different packet handler
+__declspec(naked) void map_packet_hook() {
+	asm volatile("movl %%ebx, %0": "=r" (PacketBuffer));
+
+	packet_handler();
+
+	asm volatile(
+		"movl %0, %%esi\n\t"
+		"mov %1, %%ecx\n\t"
+		"movl 8(%%ebx), %%edx\n\t"
+		"movb (%%edx), %%al\n\t"
+		"jmp *%%ecx"::"r"(PacketBuffer), "r"(client_base+0x33b17));
+}
+
 __declspec(naked) void packet_hook() {
 	asm volatile("movl %%esi, %0": "=r" (PacketBuffer));
 	asm volatile("movl 40(%%esp), %0": "=r" (peer));
