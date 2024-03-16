@@ -12,6 +12,7 @@
 #include <Aos.h>
 #include <Modloader.h>
 #include <Macro.h>
+#include <Config.h>
 
 HANDLE clientHandle;
 int client_base; // this is hacky, should we just change the original clienthandle to int?
@@ -50,6 +51,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	struct Menu* LoggerMenu = create_menu(300, 200, 0, "Logger");
 	LoggerMultitext = create_multitext(LoggerMenu, 0xffffff);
 
+	init_config();
 	initmacro();
 	initmodloader();
 	load_aos_config();
@@ -58,7 +60,6 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	printf("%i\n", fds.height);
 	printf("%i\n", get_config_volume());
 	printf("%.2f\n", get_config_mouse_sensitivity());
-
 
 	struct player_struct* p_ar = (void*)(client_base+0x7cb70);
 	int isMenuHidden = 0;
