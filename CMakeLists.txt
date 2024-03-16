@@ -14,12 +14,12 @@ add_link_options(-static -static-libgcc -static-libstdc++)
 project(aos.dll)
 
 add_library(aos SHARED)
-add_subdirectory(Source)
 add_subdirectory(Extern/json-c)
+add_subdirectory(Source)
 
 target_link_libraries(aos PRIVATE json-c-static)
 target_link_libraries(aos PRIVATE discord-rpc)
 target_compile_options(json-c PUBLIC "-DBUILD_SHARED_LIBS=OFF")
 target_compile_options(discord-rpc PUBLIC "-DBUILD_SHARED_LIBS=OFF")
 
-target_include_directories(aos PUBLIC ${PROJECT_SOURCE_DIR}/Extern/enet/include ${PROJECT_SOURCE_DIR}/Extern/json-c ${PROJECT_SOURCE_DIR}/Extern/wine-discord-rpc/include)
+target_include_directories(aos PUBLIC ${PROJECT_SOURCE_DIR}/Extern/enet/include ${PROJECT_SOURCE_DIR}/Extern/json-c ${CMAKE_SOURCE_DIR}/Extern/wine-discord-rpc/include)

@@ -1,4 +1,4 @@
-#include <json-c/json.h>
+#include <json.h>
 
 int config_array_insert_entry(json_object* section, char* entry, int index, json_object* value);
 int config_array_del_entry(json_object* section, char* entry, int index);

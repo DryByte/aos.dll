@@ -82,7 +82,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 			if (LoggerMultitext->current_pos > 0)
 				LoggerMultitext->current_pos-=1;
 		}
-		
+
 		Sleep(250);
 	}
 
