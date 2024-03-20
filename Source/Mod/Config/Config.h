@@ -10,6 +10,7 @@ config_entry* config_array_get_entry(config_entry* array, int index);
 int config_set_bool_entry(config_entry* section, char* entry, int value);
 int config_set_string_entry(config_entry* section, char* entry, const char* value);
 config_entry* config_get_array_entry(config_entry* section, char* entry);
+int config_get_int_entry(config_entry* section, char* entry, int default_value);
 int config_get_bool_entry(config_entry* section, char* entry, int default_value);
 char* config_get_string_entry(config_entry* section, char* entry, char* default_value);
 config_entry* config_get_section(char* section_name);

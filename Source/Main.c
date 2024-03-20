@@ -33,8 +33,6 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	printf("DLL Injected :D\n");
 	printf("----------------\n");
 
-	set_max_fps(120);
-
 	//83 7e 0c 02
 	// remove the block for packets of length less than 2 so we receive use versionget
 	DWORD _old_protect;
@@ -57,6 +55,9 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	initmacro();
 	initmodloader();
 	load_aos_config();
+
+	set_max_fps(config_get_int_entry(NULL, "max_fps", 60));
+
 	struct WindowSize fds = get_config_window_size();
 	printf("%i\n", fds.width);
 	printf("%i\n", fds.height);

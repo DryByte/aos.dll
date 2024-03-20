@@ -59,7 +59,26 @@ config_entry* config_get_array_entry(config_entry* section, char* entry) {
 	return array_obj;
 }
 
+int config_get_int_entry(config_entry* section, char* entry, int default_value) {
+	if(section == NULL)
+		section = config_object;
+
+	config_entry* int_obj = get_entry(section, entry);
+
+	if (!int_obj) {
+		int_obj = json_object_new_int(default_value);
+		json_object_object_add(section, entry, int_obj);
+
+		return default_value;
+	}
+
+	return json_object_get_int(int_obj);
+}
+
 int config_get_bool_entry(config_entry* section, char* entry, int default_value) {
+	if(section == NULL)
+		section = config_object;
+
 	config_entry* bool_obj = get_entry(section, entry);
 
 	if (!bool_obj) {
@@ -74,6 +93,9 @@ int config_get_bool_entry(config_entry* section, char* entry, int default_value)
 }
 
 char* config_get_string_entry(config_entry* section, char* entry, char* default_value) {
+	if(section == NULL)
+		section = config_object;
+	
 	config_entry* str_obj = get_entry(section, entry);
 
 	if (!str_obj) {
