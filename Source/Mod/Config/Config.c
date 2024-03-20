@@ -63,7 +63,7 @@ int config_get_bool_entry(json_object* section, char* entry, int default_value) 
 	return json_object_get_boolean(bool_obj);
 }
 
-const char* config_get_string_entry(json_object* section, char* entry, const char* default_value) {
+char* config_get_string_entry(json_object* section, char* entry, char* default_value) {
 	json_object* str_obj = get_entry(section, entry);
 
 	if (!str_obj) {
@@ -73,7 +73,7 @@ const char* config_get_string_entry(json_object* section, char* entry, const cha
 		return default_value;
 	}
 
-	return json_object_get_string(str_obj);
+	return (char*)json_object_get_string(str_obj);
 }
 
 json_object* config_get_section(char* section_name) {

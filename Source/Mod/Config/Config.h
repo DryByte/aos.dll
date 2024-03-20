@@ -7,7 +7,7 @@ int config_set_bool_entry(json_object* section, char* entry, int value);
 int config_set_string_entry(json_object* section, char* entry, const char* value);
 array_list* config_get_array_entry(json_object* section, char* entry);
 int config_get_bool_entry(json_object* section, char* entry, int default_value);
-const char* config_get_string_entry(json_object* section, char* entry, const char* default_value);
+char* config_get_string_entry(json_object* section, char* entry, char* default_value);
 json_object* config_get_section(char* section_name);
 
 void save_config();
