@@ -66,7 +66,7 @@ void pin_button_handler(struct Menu* menu, struct ItemClickableButton* btn) {
 struct ItemText* create_text(struct Menu* menu, int font_id, int color, char* text) {
 	int id = get_next_available_item_id(menu);
 
-	struct ItemText* txtItem = malloc(sizeof(struct ItemText)+32);
+	struct ItemText* txtItem = calloc(sizeof(struct ItemText)+32, 1);
 	txtItem->type = TEXT_ITEM;
 	txtItem->id = id;
 	txtItem->color = color;
@@ -83,7 +83,7 @@ struct ItemText* create_text(struct Menu* menu, int font_id, int color, char* te
 
 void add_new_text(struct ItemMultitext* multitext, char* text) {
 	int strLen = strlen(text);
-	struct MultitextNode* node = malloc(sizeof(struct MultitextNode) + (strLen < 128 ? strLen : 128));
+	struct MultitextNode* node = calloc(sizeof(struct MultitextNode) + (strLen < 128 ? strLen : 128), 1);
 
 	if (multitext->current_pos != 0)
 		multitext->current_pos += 1;
@@ -107,7 +107,7 @@ void add_new_text(struct ItemMultitext* multitext, char* text) {
 struct ItemMultitext* create_multitext(struct Menu* menu, int color) {
 	int id = get_next_available_item_id(menu);
 
-	struct ItemMultitext* multitextItem = malloc(sizeof(struct ItemMultitext));
+	struct ItemMultitext* multitextItem = calloc(sizeof(struct ItemMultitext), 1);
 	multitextItem->type = MULTITEXT_ITEM;
 	multitextItem->id = id;
 	multitextItem->color = color;
@@ -129,7 +129,7 @@ struct ItemMultitext* create_multitext(struct Menu* menu, int color) {
 struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* text, void (*func)()) {
 	int id = get_next_available_item_id(menu);
 
-	struct ItemClickableButton* btn = malloc(sizeof(struct ItemClickableButton) + 32);
+	struct ItemClickableButton* btn = calloc(sizeof(struct ItemClickableButton) + 32, 1);
 	btn->type = CLICKABLE_BUTTON_ITEM;
 	btn->id = id;
 	btn->color = 0xffff0000;
@@ -153,7 +153,7 @@ struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* tex
 struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, long background_color, char* placeholder) {
 	int id = get_next_available_item_id(menu);
 
-	struct ItemTextInput* input = malloc(sizeof(struct ItemTextInput) + 256);
+	struct ItemTextInput* input = calloc(sizeof(struct ItemTextInput) + 256, 1);
 	input->type = TEXTINPUT_ITEM;
 	input->id = id;
 	input->x_size = x_size;
@@ -173,7 +173,7 @@ struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_siz
 struct ItemSlide* create_slide(struct Menu* menu, int min_value, int max_value, int* interact) {
 	int id = get_next_available_item_id(menu);
 
-	struct ItemSlide* slide = malloc(sizeof(struct ItemSlide));
+	struct ItemSlide* slide = calloc(sizeof(struct ItemSlide), 1);
 	slide->type = SLIDE_ITEM;
 	slide->id = id;
 	slide->x_size = 90;
@@ -196,7 +196,7 @@ struct ItemSlide* create_slide(struct Menu* menu, int min_value, int max_value, 
 
 struct Menu* create_menu(int x, int y, int outline, char* title) {
 	int menu_id = get_next_available_menu_id();
-	struct Menu* menu = malloc(sizeof(struct Menu)+32);	
+	struct Menu* menu = calloc(sizeof(struct Menu)+32, 1);	
 
 	menu->id = menu_id;
 	menu->outline_color = outline;
@@ -381,8 +381,12 @@ void draw_menus() {
 			drawtile((long)color, 1, 1, 1, 0x0, 0x0, menu->x_pos, menu->y_pos+8, menu->x_size, menu->y_size-8, -1);
 		}
 
+		printf("%s\n", menu->title);
 		for (int itemId = 0; itemId < itemsLen; itemId++) {
 			void* item = menu->items[itemId];
+			printf("item: %p %i\n", item, sizeof(&item));
+			if (item == 0)
+				break;
 			int itemType = ((struct Item*)item)->type;
 
 			if (menu->minimized && itemType != CLICKABLE_BUTTON_ITEM)
