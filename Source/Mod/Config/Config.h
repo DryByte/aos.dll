@@ -3,8 +3,8 @@
 typedef json_object config_entry;
 
 int config_array_get_length(config_entry* array);
-int config_array_insert_entry(config_entry* array, char* entry, int index, config_entry* value);
-int config_array_del_entry(config_entry* array, char* entry, int index);
+int config_array_insert_entry(config_entry* array, int index, config_entry* value);
+int config_array_del_entry(config_entry* array, int index);
 int config_array_add_entry(config_entry* array, config_entry* value);
 config_entry* config_array_get_entry(config_entry* array, int index);
 int config_set_bool_entry(config_entry* section, char* entry, int value);

@@ -381,12 +381,8 @@ void draw_menus() {
 			drawtile((long)color, 1, 1, 1, 0x0, 0x0, menu->x_pos, menu->y_pos+8, menu->x_size, menu->y_size-8, -1);
 		}
 
-		printf("%s\n", menu->title);
 		for (int itemId = 0; itemId < itemsLen; itemId++) {
 			void* item = menu->items[itemId];
-			printf("item: %p %i\n", item, sizeof(&item));
-			if (item == 0)
-				break;
 			int itemType = ((struct Item*)item)->type;
 
 			if (menu->minimized && itemType != CLICKABLE_BUTTON_ITEM)

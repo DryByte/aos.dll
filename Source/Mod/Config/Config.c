@@ -17,11 +17,11 @@ int config_array_get_length(config_entry* array) {
 	return json_object_array_length(array);
 }
 
-int config_array_insert_entry(config_entry* array, char* entry, int index, config_entry* value) {
+int config_array_insert_entry(config_entry* array, int index, config_entry* value) {
 	return json_object_array_put_idx(array, index, value);
 }
 
-int config_array_del_entry(config_entry* array, char* entry, int index) {
+int config_array_del_entry(config_entry* array, int index) {
 	return json_object_array_del_idx(array, index, 1);
 }
 
@@ -40,6 +40,11 @@ int config_set_bool_entry(config_entry* section, char* entry, int value) {
 
 int config_set_string_entry(config_entry* section, char* entry, const char* value) {
 	config_entry* str_obj = get_entry(section, entry);
+	if (!str_obj) {
+		str_obj = json_object_new_string(value);
+		json_object_object_add(section, entry, str_obj);
+	}
+
 	return json_object_set_string(str_obj, value);
 }
 
@@ -48,7 +53,7 @@ config_entry* config_get_array_entry(config_entry* section, char* entry) {
 
 	if (!array_obj) {
 		array_obj = json_object_new_array();
-		json_object_object_add(section, entry, array_obj);
+		json_object_object_add(config_object, entry, array_obj);
 	}
 
 	return array_obj;
