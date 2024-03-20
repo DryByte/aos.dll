@@ -9,7 +9,7 @@ HANDLE file_handler;
 WIN32_FIND_DATAA file_desc;
 
 struct ItemMultitext* mt;
-json_object* modloader_config;
+config_entry* modloader_config;
 
 extern int client_base;
 
