@@ -6,8 +6,10 @@
 #include <Menu.h>
 #include <Voxlap.h>
 #include <Packets.h>
+#include <Config.h>
 
 extern int client_base;
+config_entry* macros_entry;
 
 // Only alphabet is mapped
 const char SCANCODES[26] = {
@@ -139,6 +141,45 @@ void clean_inputs() {
 	memset(message->input, 0x0, 128);
 }
 
+void save_macros_to_config() {
+	int array_size = get_available_macro_id();
+	int config_length = config_array_get_length(macros_entry);
+
+	for (int i = 0; i < array_size; i++) {
+		struct macro_entry* entry = macro_array[i];
+
+		config_entry* macro_obj = json_object_new_object(); // we should change this to config somehow
+
+		config_set_string_entry(macro_obj, "key", (char*)&entry->key);
+		config_set_string_entry(macro_obj, "name", entry->macro_name);
+		config_set_string_entry(macro_obj, "message", entry->msg);
+
+		config_array_insert_entry(macros_entry, i, macro_obj);
+	}
+
+	if (config_length > array_size) {
+		for (int i = array_size; i < config_length; i++) {
+			config_array_del_entry(macros_entry, i);
+		}
+	}
+
+	save_config();
+}
+
+void load_macros_from_config() {
+	// the macro array is directly as a general, thats why NULL as section
+	macros_entry = config_get_array_entry(NULL, "macros");
+
+	for (int i = 0; i < config_array_get_length(macros_entry); i++) {
+		config_entry* obj = config_array_get_entry(macros_entry, i);
+		unsigned char key = config_get_string_entry(obj, "key", "f")[0];
+		char* macro_name = config_get_string_entry(obj, "name", "example_macro");
+		char* msg = config_get_string_entry(obj, "message", "example");
+
+		new_macro_entry(key, macro_name, msg);
+	}
+}
+
 void btn_new_handler(struct Menu* menu, struct ItemClickableButton* btn) {
 	if (!btn->is_clicking)
 		return;
@@ -201,6 +242,7 @@ void btn_del_handler(struct Menu* menu, struct ItemClickableButton* btn) {
 	memset(entry->macro_text->text, 0, 128);
 	free(entry->macro_text);
 	macro_array[id] = 0;
+	save_macros_to_config();
 }
 
 void btn_save_macro(struct Menu* menu, struct ItemClickableButton* btn) {
@@ -215,6 +257,7 @@ void btn_save_macro(struct Menu* menu, struct ItemClickableButton* btn) {
 		return;
 
 	new_macro_entry((unsigned char)key->input[0],(char*)name->input, (char*)message->input);
+	save_macros_to_config();
 	clean_inputs();
 	
 	menu->hidden = 1;
@@ -305,8 +348,8 @@ void create_macro_menu() {
 	btn_del->y_pos = 125;
 }
 
-void initmacro() {
-	//later auto load macros from config
+void init_macro() {
 	create_macro_menu();
 	create_edit_macro_menu();
+	load_macros_from_config();
 }

@@ -3,11 +3,15 @@
 #include <stdio.h>
 #include <Voxlap.h>
 #include <Aos.h>
+#include <Config.h>
 
 HANDLE file_handler;
 WIN32_FIND_DATAA file_desc;
 
 struct ItemMultitext* mt;
+config_entry* modloader_config;
+
+extern int client_base;
 
 const char kv6filenames[37][15] = {
 	"SPADE_3","BLOCK_3","SEMI_3","SMG_3","SHOTGUN_3","GRENADE_3","SPADE","BLOCK","SEMI","SMG","SHOTGUN","GRENADE",
@@ -178,6 +182,27 @@ void load_skin(char* skin_name) {
 	}
 }
 
+void update_skin(char* skin_name) {
+	// load default skins
+	load_kv6_files();
+	load_image_files();
+
+	if (!skin_name) {
+		char* skin = config_get_string_entry(modloader_config, "selected_skin", "(none)");
+
+		if (strcmp(skin, "(none)"))
+			skin_name = skin;
+	}
+
+	if (skin_name) {
+		load_skin(skin_name);
+		load_skin_images(skin_name);
+	}
+
+	load_player_skins();
+	load_world_objects();
+}
+
 void update_skin_btn(struct Menu* skinMenu, struct ItemClickableButton* btn) {
 	if (!btn->is_clicking)
 		return;
@@ -185,13 +210,15 @@ void update_skin_btn(struct Menu* skinMenu, struct ItemClickableButton* btn) {
 	if (!strcmp(mt->selected->text, "(none)")) {
 		load_kv6_files();
 		load_image_files();
+
+		load_player_skins();
+		load_world_objects();
 	} else {
-		load_skin(mt->selected->text);
-		load_skin_images(mt->selected->text);
+		update_skin(mt->selected->text);
 	}
 
-	load_player_skins();
-	load_world_objects();
+	config_set_string_entry(modloader_config, "selected_skin", mt->selected->text);
+	save_config();
 }
 
 void create_modloader_menu() {
@@ -221,11 +248,18 @@ void create_modloader_menu() {
 	add_new_text(mt, "(none)");
 }
 
-void initmodloader() {
+__declspec(naked) void load_skin_hook() {
+	update_skin(NULL);
+
+	asm volatile ("jmp *%0":: "r"(client_base+0x33dfb));
+}
+
+void init_mod_loader() {
 	file_handler = FindFirstFileA("./modloader/*", &file_desc);
 
 	if (file_handler == INVALID_HANDLE_VALUE)
 		return;
 
 	create_modloader_menu();
+	modloader_config = config_get_section("modloader");
 }
