@@ -254,7 +254,7 @@ __declspec(naked) void load_skin_hook() {
 	asm volatile ("jmp *%0":: "r"(client_base+0x33dfb));
 }
 
-void initmodloader() {
+void init_mod_loader() {
 	file_handler = FindFirstFileA("./modloader/*", &file_desc);
 
 	if (file_handler == INVALID_HANDLE_VALUE)

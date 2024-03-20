@@ -9,4 +9,4 @@ struct macro_entry {
 };
 
 void handle_macros();
-void initmacro();
+void init_macro();

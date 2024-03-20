@@ -52,8 +52,8 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	LoggerMultitext = create_multitext(LoggerMenu, 0xffffff);
 
 	init_config();
-	initmacro();
-	initmodloader();
+	init_macro();
+	init_mod_loader();
 	load_aos_config();
 
 	set_max_fps(config_get_int_entry(NULL, "max_fps", 60));

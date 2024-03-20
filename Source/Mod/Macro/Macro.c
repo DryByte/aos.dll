@@ -348,7 +348,7 @@ void create_macro_menu() {
 	btn_del->y_pos = 125;
 }
 
-void initmacro() {
+void init_macro() {
 	create_macro_menu();
 	create_edit_macro_menu();
 	load_macros_from_config();
