@@ -174,7 +174,7 @@ void render_chat_shadow() {
 	int is_chat_open = *(int*)(client_base+0x84660);
 	if (is_chat_open) {
 		y -= 20;
-		ys += 20;
+		ys += 30;
 
 		char msg_len = strlen((char*)(client_base+0x12b16e0));
 		char global_len = strlen("global: ");
@@ -207,7 +207,7 @@ void render_chat_shadow() {
 	}
 
 	if (is_chat_open || chat_buffer) {
-		long color[] = {0xe0000000};
+		long color[] = {0xca000000};
 		drawtile((long)color, 1, 1, 1, 0x0, 0x0, 10, y, 6*xs, ys, -1);
 	}
 }
@@ -232,11 +232,9 @@ __declspec(naked) void rendering_hook_bi() {
 	asm volatile (
 		"mov %0, %%esi\n\t"
 		"mov %%esi, %%eax\n\t"
-		"add $0x13b1e04, %%eax\n\t"
-		"movl (%%eax), %%eax\n\t"
-		"inc %%eax\n\t"
-
-		"add $0x32f05, %%esi\n\t"
+		"add $0x289a0, %%eax\n\t"
+		"call *%%eax\n\t" // draw chat
+		"add $0x334a5, %%esi\n\t"
 		"jmp *%%esi"
 		:: "r" (client_base) //probably we can change it later, im tired rn
 	);
