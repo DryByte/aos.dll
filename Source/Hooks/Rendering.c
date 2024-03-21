@@ -232,11 +232,9 @@ __declspec(naked) void rendering_hook_bi() {
 	asm volatile (
 		"mov %0, %%esi\n\t"
 		"mov %%esi, %%eax\n\t"
-		"add $0x13b1e04, %%eax\n\t"
-		"movl (%%eax), %%eax\n\t"
-		"inc %%eax\n\t"
-
-		"add $0x32f05, %%esi\n\t"
+		"add $0x289a0, %%eax\n\t"
+		"call *%%eax\n\t" // draw chat
+		"add $0x334a5, %%esi\n\t"
 		"jmp *%%esi"
 		:: "r" (client_base) //probably we can change it later, im tired rn
 	);
