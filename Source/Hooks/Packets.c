@@ -110,6 +110,11 @@ int packet_handler() {
 				}
 			}
 			break;
+		case 15:
+			{
+				get_server_info();
+				break;
+			}
 		case 17:
 			{
 				uint8_t* buf = (uint8_t*)malloc(PacketBuffer->dataLength*sizeof(uint8_t));
