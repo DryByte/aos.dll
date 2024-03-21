@@ -174,7 +174,7 @@ void render_chat_shadow() {
 	int is_chat_open = *(int*)(client_base+0x84660);
 	if (is_chat_open) {
 		y -= 20;
-		ys += 20;
+		ys += 30;
 
 		char msg_len = strlen((char*)(client_base+0x12b16e0));
 		char global_len = strlen("global: ");
@@ -207,7 +207,7 @@ void render_chat_shadow() {
 	}
 
 	if (is_chat_open || chat_buffer) {
-		long color[] = {0xe0000000};
+		long color[] = {0xca000000};
 		drawtile((long)color, 1, 1, 1, 0x0, 0x0, 10, y, 6*xs, ys, -1);
 	}
 }
