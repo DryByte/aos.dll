@@ -3,4 +3,5 @@
 
 extern int client_base;
 
-void initmodloader();
+void load_skin_hook();
+void init_mod_loader();

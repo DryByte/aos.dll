@@ -33,8 +33,6 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	printf("DLL Injected :D\n");
 	printf("----------------\n");
 
-	set_max_fps(120);
-
 	//83 7e 0c 02
 	// remove the block for packets of length less than 2 so we receive use versionget
 	DWORD _old_protect;
@@ -43,8 +41,9 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	*lengthLimit = 1;
 
 	create_hook(client_base, 0x33b12, map_packet_hook, 5);
+	create_hook(client_base, 0x33df1, load_skin_hook, 10); // probably we can change this to a create call later
 	create_hook(client_base, 0x343e4, packet_hook, 7);
-	create_hook(client_base, 0x32f00, rendering_hook_bi, 6);
+	create_hook(client_base, 0x334a0, rendering_hook_bi, 5);
 	create_hook(client_base, 0x334aa, rendering_hook_ai, 6);
 	create_hook(client_base, 0x3126d, hook_inputs, 6);
 	create_hook(client_base, 0x2bb10, spectator_movement_hook, 11);
@@ -53,9 +52,12 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	LoggerMultitext = create_multitext(LoggerMenu, 0xffffff);
 
 	init_config();
-	initmacro();
-	initmodloader();
+	init_macro();
+	init_mod_loader();
 	load_aos_config();
+
+	set_max_fps(config_get_int_entry(NULL, "max_fps", 60));
+
 	struct WindowSize fds = get_config_window_size();
 	printf("%i\n", fds.width);
 	printf("%i\n", fds.height);
