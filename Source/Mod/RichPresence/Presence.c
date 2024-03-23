@@ -7,15 +7,18 @@
 #include <processenv.h>
 
 #include <Presence.h>
+#include <Config.h>
 
 #define MAX_RESPONSE 65535
 
 game_state state;
 game_state old_state;
+config_entry* presence_config;
 
 const char* app_id = "699358451494682714";
 int player_id = 0;
 int validator_enabled = 0;
+int reset_timer_on_map_change = 1;
 
 int player_count = 1;
 int old_player_count = 1;
@@ -85,6 +88,7 @@ void decrement_player_count() {
 }
 
 void get_current_game_state() {
+    state.is_alive = *((int*)((client_base + 0x7ce90) + (player_id * 0x3a8)));
     state.current_tool = *((int*)(client_base + 0x13cf808));
     state.current_weapon = *((int*)((client_base + 0x7ce5c) + (player_id * 0x3a8)));
     state.current_team = *((int*)((client_base + 0x7ce58) + (player_id * 0x3a8)));
@@ -93,12 +97,12 @@ void get_current_game_state() {
 }
 
 void get_server_info() {
-    state.playtime_start = time(0);
+    if (reset_timer_on_map_change) state.playtime_start = time(0);
     // request buildandshoot for serverlist (https://learn.microsoft.com/en-us/windows/win32/api/winhttp/nf-winhttp-winhttpquerydataavailable#examples)
     DWORD bytes_available = 0;
     DWORD bytes_read = 0;
     LPSTR http_data_buffer;
-    int is_successfull = FALSE;
+    int is_successful = FALSE;
     HINTERNET session = NULL, connection = NULL, request = NULL;
 
     LPSTR full_response = (LPSTR)malloc(sizeof(char) * MAX_RESPONSE);
@@ -124,7 +128,7 @@ void get_server_info() {
             printf("no connection (variable)\n");
 
     if(request)
-        is_successfull = WinHttpSendRequest( request,
+        is_successful = WinHttpSendRequest( request,
                                     WINHTTP_NO_ADDITIONAL_HEADERS, 0,
                                     WINHTTP_NO_REQUEST_DATA, 0, 
                                     0, 0 );
@@ -132,12 +136,12 @@ void get_server_info() {
             printf("no request\n");
 
 
-    if(is_successfull)
-        is_successfull = WinHttpReceiveResponse( request, NULL );
+    if(is_successful)
+        is_successful = WinHttpReceiveResponse( request, NULL );
         else
             printf("no results\n");
 
-    if(is_successfull)
+    if(is_successful)
     {
         do 
         {
@@ -171,7 +175,7 @@ void get_server_info() {
     }
 
 
-    if(!is_successfull)
+    if(!is_successful)
         printf( "Error %ld has occurred.\n", GetLastError( ) );
 
     if(request) WinHttpCloseHandle(request);
@@ -192,6 +196,7 @@ void get_server_info() {
                                                                                         // it just adds a slash to the end of aos identifier, because why not... WINDOWS MOMENT
         identifier[expected_quote_pos] = '\0'; // remove useless quote
 
+    int server_found = 0;
     for (unsigned int index = 0; index < json_object_array_length(serverlist); index++) {
         json_object* server_instance = json_object_array_get_idx(serverlist, index);
 
@@ -205,88 +210,103 @@ void get_server_info() {
             strcpy(state.map_name, json_object_get_string(map));
             state.max_players = json_object_get_int(players_max);
 
+            server_found = 1;
             break;
         }
+    }
+    if (!server_found) {
+        strcpy(state.server_name, "(Local/Private server)");
+        strcpy(state.map_name, "");
+        state.max_players = 0;
     }
 }
 
 void update_presence(){
-    if (presence_enabled)
-    {
-        player_id = *((int*)(client_base+0x13b1cf0));
-        get_current_game_state();
+    player_id = *((int*)(client_base+0x13b1cf0));
+    get_current_game_state();
 
-        if ((state.current_team == old_state.current_team) &&
-            (state.current_tool == old_state.current_tool) &&
-            (state.current_weapon == old_state.current_weapon) &&
-            (state.intel_holder_t1 == old_state.intel_holder_t1) &&
-            (state.intel_holder_t2 == old_state.intel_holder_t2) && 
-            (player_count == old_player_count)) 
-        { return; }
+    if ((state.is_alive == old_state.is_alive) &&
+        (state.current_team == old_state.current_team) &&
+        (state.current_tool == old_state.current_tool) &&
+        (state.current_weapon == old_state.current_weapon) &&
+        (state.intel_holder_t1 == old_state.intel_holder_t1) &&
+        (state.intel_holder_t2 == old_state.intel_holder_t2) && 
+        (player_count == old_player_count)) 
+    { return; }
 
-        old_state = state;
-        old_player_count = player_count;
+    old_state = state;
+    old_player_count = player_count;
 
-        DiscordRichPresence presence;
-        memset(&presence, 0, sizeof(DiscordRichPresence));
-        presence.startTimestamp = state.playtime_start;
+    DiscordRichPresence presence;
+    memset(&presence, 0, sizeof(DiscordRichPresence));
+    presence.startTimestamp = state.playtime_start;
 
-        char s_name_buf[128], m_name_buf[128];
-        sprintf(s_name_buf, "%s", state.server_name);
-        sprintf(m_name_buf, "%s", state.map_name);
-        presence.details = s_name_buf;
-        presence.state = m_name_buf;
+    char s_name_buf[128], m_name_buf[128];
+    sprintf(s_name_buf, "%s", state.server_name);
+    sprintf(m_name_buf, "%s", state.map_name);
+    presence.details = s_name_buf;
+    presence.state = m_name_buf;
 
-        if (player_id == -1) {
-            presence.largeImageKey = "largeimagekey_loading";
-            presence.largeImageText = "Loading map...";
-        }
-        else {
-            if (state.current_team == -2) {
-                presence.largeImageKey = "largeimagekey_teamselection";
-                presence.largeImageText = "Choosing team";
-            }
-            else if (state.current_team == -1) {
-                validator_enabled = 1;
-                presence.largeImageKey = "largeimagekey_spectating";
-                presence.largeImageText = "Spectating";
-            }
-            else {
-                validator_enabled = 1;
-                if (state.current_tool != 2) {
-                    presence.largeImageKey = tool_images[state.current_tool];
-                    presence.largeImageText = tool_descriptions[state.current_tool];
-                }
-                else {
-                    presence.largeImageKey = weapon_images[state.current_weapon];
-                    presence.largeImageText = weapon_descriptions[state.current_weapon];
-                }
-                
-                if (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id) {
-                    presence.smallImageKey = "smallimagekey_intel";
-                    presence.smallImageText = "Holds enemy intel!";
-                }
-                else {
-                    presence.smallImageKey = "ace_of_spades";
-                    char ply_count_buf[128];
-                    sprintf(ply_count_buf, "Players: %d/%d", player_count, state.max_players);
-                    presence.smallImageText = ply_count_buf;
-                }
-            }
-        }
-
-
-        Discord_UpdatePresence(&presence);
+    if (player_id == -1) {
+        presence.largeImageKey = "largeimagekey_loading";
+        presence.largeImageText = "Loading map...";
     }
     else {
-        Discord_ClearPresence();
+        if (state.current_team == -2) {
+            presence.largeImageKey = "largeimagekey_teamselection";
+            presence.largeImageText = "Choosing team";
+        }
+        else if (state.current_team == -1) {
+            validator_enabled = 1;
+            presence.largeImageKey = "largeimagekey_spectating";
+            presence.largeImageText = "Spectating";
+        }
+        else {
+            validator_enabled = 1;
+            if (!state.is_alive) {
+                presence.largeImageKey = "largeimagekey_dead";
+                presence.largeImageText = "Dead";
+                Discord_UpdatePresence(&presence);
+                return;
+            }
+
+            if (state.current_tool != 2) {
+                presence.largeImageKey = tool_images[state.current_tool];
+                presence.largeImageText = tool_descriptions[state.current_tool];
+            }
+            else {
+                presence.largeImageKey = weapon_images[state.current_weapon];
+                presence.largeImageText = weapon_descriptions[state.current_weapon];
+            }
+            
+            if (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id) {
+                presence.smallImageKey = "smallimagekey_intel";
+                presence.smallImageText = "Holds enemy intel!";
+            }
+            else {
+                presence.smallImageKey = "ace_of_spades";
+                char ply_count_buf[128];
+                sprintf(ply_count_buf, "Players: %d/%d", player_count, state.max_players);
+                presence.smallImageText = ply_count_buf;
+            }
+        }
     }
+
+    Discord_UpdatePresence(&presence);
 }
 
 void init_rich_presence() {
-    discord_init();
-    update_presence();
-    get_server_info();
+    presence_config = config_get_section("richpresence");
+    presence_enabled = config_get_bool_entry(presence_config, "enabled", 1);
+    if (!presence_enabled) { return; }
 
+    discord_init();
+    get_server_info();
+    update_presence();
+
+    reset_timer_on_map_change = config_get_bool_entry(presence_config, "reset_timer_on_map_change", 1);
+    state.playtime_start = time(0);
+
+    save_config();
     //create_richpresence_menu();
 }

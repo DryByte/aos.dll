@@ -12,6 +12,7 @@ void get_server_info();
 
 typedef struct game_state {
     // offline
+    int is_alive;
     int current_tool;
     int current_weapon;
     int current_team;

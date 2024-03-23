@@ -13,10 +13,12 @@
 #include <Modloader.h>
 #include <Macro.h>
 #include <Config.h>
+#include <Presence.h>
 
 HANDLE clientHandle;
 int client_base; // this is hacky, should we just change the original clienthandle to int?
 struct ItemMultitext* LoggerMultitext;
+int presence_enabled;
 
 DWORD WINAPI LoopFunction(LPVOID lpParam)
 {
@@ -55,6 +57,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	init_macro();
 	init_mod_loader();
 	load_aos_config();
+	init_rich_presence();
 
 	set_max_fps(config_get_int_entry(NULL, "max_fps", 60));
 
@@ -85,6 +88,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 				LoggerMultitext->current_pos-=1;
 		}
 
+		if (presence_enabled) { update_presence(); }
 		Sleep(250);
 	}
 
