@@ -1,4 +1,4 @@
-//#include <time.h>
+#include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <json.h>
@@ -93,6 +93,7 @@ void get_current_game_state() {
 }
 
 void get_server_info() {
+    state.playtime_start = time(0);
     // request buildandshoot for serverlist (https://learn.microsoft.com/en-us/windows/win32/api/winhttp/nf-winhttp-winhttpquerydataavailable#examples)
     DWORD bytes_available = 0;
     DWORD bytes_read = 0;
@@ -177,52 +178,42 @@ void get_server_info() {
     if(connection) WinHttpCloseHandle(connection);
     if(session) WinHttpCloseHandle(session);
 
-    // parse json, get objects
-    int server_idx = 0;
+
     int serverlist_len = strlen((const char*)full_response) + 1;
     json_tokener* tokener = json_tokener_new();
     json_object* serverlist = json_tokener_parse_ex(tokener, (const char*)full_response, serverlist_len);
     json_tokener_free(tokener);
 
-    json_object* server_instance;
     LPSTR command_line = GetCommandLineA();
     char* identifier = strstr(command_line, "aos://");
-    identifier[strlen(identifier) - 1] = '\0'; // remove useless quote
 
-    while(1)
-    {
-        server_instance = json_object_array_get_idx(serverlist, server_idx);
-        if (server_instance == NULL) { break; }
-        json_object* server_identifier;
-        json_object_object_get_ex(server_instance, "identifier", &server_identifier);
+    int expected_quote_pos = strlen(identifier) - 1;
+    if (identifier[expected_quote_pos] == '"' || identifier[expected_quote_pos] == '/') // FKN 2 hours to find out that on windows, when the game is not launched directly from a debugger,
+                                                                                        // it just adds a slash to the end of aos identifier, because why not... WINDOWS MOMENT
+        identifier[expected_quote_pos] = '\0'; // remove useless quote
 
-        const char* cmp_identifier = json_object_get_string(server_identifier);
-        if (strcmp(identifier, cmp_identifier) == 0) {
-            json_object *server_name, *map_name, *max_players;
-            json_object_object_get_ex(server_instance, "name", &server_name);
-            json_object_object_get_ex(server_instance, "map", &map_name);
-            json_object_object_get_ex(server_instance, "players_max", &max_players);
+    for (unsigned int index = 0; index < json_object_array_length(serverlist); index++) {
+        json_object* server_instance = json_object_array_get_idx(serverlist, index);
 
-            // strcpy(state.server_name, json_object_get_string(server_name));
-            // strcpy(state.map_name, json_object_get_string(map_name));
-            strcpy(state.server_name, "asdjfhdjlfld");
-            strcpy(state.map_name, "bruhmomento");
-            state.max_players = json_object_get_int(max_players);
+        json_object* server_identifier = json_object_object_get(server_instance, "identifier");
+        if (!strcmp(identifier, json_object_get_string(server_identifier))) {
+            json_object* name_obj = json_object_object_get(server_instance, "name");
+            json_object* map = json_object_object_get(server_instance, "map");
+            json_object* players_max = json_object_object_get(server_instance, "players_max");
+
+            strcpy(state.server_name, json_object_get_string(name_obj));
+            strcpy(state.map_name, json_object_get_string(map));
+            state.max_players = json_object_get_int(players_max);
+
             break;
         }
-
-        server_idx++;
-    } 
-
-    // add into state object
-    // profit
+    }
 }
 
 void update_presence(){
     if (presence_enabled)
     {
         player_id = *((int*)(client_base+0x13b1cf0));
-        // int64_t playtime_start = time(0); // map change
         get_current_game_state();
 
         if ((state.current_team == old_state.current_team) &&
@@ -238,7 +229,7 @@ void update_presence(){
 
         DiscordRichPresence presence;
         memset(&presence, 0, sizeof(DiscordRichPresence));
-        // presence.startTimestamp = playtime_start;
+        presence.startTimestamp = state.playtime_start;
 
         char s_name_buf[128], m_name_buf[128];
         sprintf(s_name_buf, "%s", state.server_name);
@@ -294,8 +285,8 @@ void update_presence(){
 
 void init_rich_presence() {
     discord_init();
-    get_server_info();
     update_presence();
+    get_server_info();
 
     //create_richpresence_menu();
 }
