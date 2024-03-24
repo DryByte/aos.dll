@@ -24,4 +24,5 @@ typedef struct game_state {
     char map_name[32];
     int max_players;
     int64_t playtime_start;
+    int last_updated;
 } game_state;

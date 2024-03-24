@@ -16,6 +16,10 @@ game_state old_state;
 config_entry* presence_config;
 
 const char* app_id = "699358451494682714";
+
+int valid_state_data = 0;
+int failure_count = 0;
+
 int player_id = 0;
 int validator_enabled = 0;
 int reset_timer_on_map_change = 1;
@@ -97,7 +101,6 @@ void get_current_game_state() {
 }
 
 void get_server_info() {
-    if (reset_timer_on_map_change) state.playtime_start = time(0);
     // request buildandshoot for serverlist (https://learn.microsoft.com/en-us/windows/win32/api/winhttp/nf-winhttp-winhttpquerydataavailable#examples)
     DWORD bytes_available = 0;
     DWORD bytes_read = 0;
@@ -116,30 +119,42 @@ void get_server_info() {
     if(session)
         connection = WinHttpConnect( session, L"services.buildandshoot.com",
                                 INTERNET_DEFAULT_HTTPS_PORT, 0 );
-        else
-            printf("no session\n");
+    else {
+        failure_count++;
+        valid_state_data = 0;
+        printf("no session\n");
+    }
 
     if(connection)
         request = WinHttpOpenRequest( connection, L"GET", L"/serverlist.json",
                                     NULL, WINHTTP_NO_REFERER, 
                                     WINHTTP_DEFAULT_ACCEPT_TYPES, 
                                     WINHTTP_FLAG_SECURE );
-        else
-            printf("no connection (variable)\n");
+    else {
+        failure_count++;
+        valid_state_data = 0;
+        printf("no connection (variable)\n");
+    }
 
     if(request)
         is_successful = WinHttpSendRequest( request,
                                     WINHTTP_NO_ADDITIONAL_HEADERS, 0,
                                     WINHTTP_NO_REQUEST_DATA, 0, 
                                     0, 0 );
-        else
-            printf("no request\n");
+    else {
+        failure_count++;
+        valid_state_data = 0;
+        printf("no request\n");
+    }
 
 
     if(is_successful)
         is_successful = WinHttpReceiveResponse( request, NULL );
-        else
-            printf("no results\n");
+    else {
+        failure_count++;
+        valid_state_data = 0;
+        printf("no results\n");
+    }
 
     if(is_successful)
     {
@@ -175,8 +190,11 @@ void get_server_info() {
     }
 
 
-    if(!is_successful)
+    if(!is_successful) {
+        failure_count++;
+        valid_state_data = 0;
         printf( "Error %ld has occurred.\n", GetLastError( ) );
+    }
 
     if(request) WinHttpCloseHandle(request);
     if(connection) WinHttpCloseHandle(connection);
@@ -199,19 +217,34 @@ void get_server_info() {
     int server_found = 0;
     for (unsigned int index = 0; index < json_object_array_length(serverlist); index++) {
         json_object* server_instance = json_object_array_get_idx(serverlist, index);
-
         json_object* server_identifier = json_object_object_get(server_instance, "identifier");
+
         if (!strcmp(identifier, json_object_get_string(server_identifier))) {
-            json_object* name_obj = json_object_object_get(server_instance, "name");
-            json_object* map = json_object_object_get(server_instance, "map");
-            json_object* players_max = json_object_object_get(server_instance, "players_max");
-
-            strcpy(state.server_name, json_object_get_string(name_obj));
-            strcpy(state.map_name, json_object_get_string(map));
-            state.max_players = json_object_get_int(players_max);
-
             server_found = 1;
-            break;
+
+            json_object* json_last_updated = json_object_object_get(server_instance, "last_updated");
+            int last_updated = json_object_get_int(json_last_updated);
+
+            if (last_updated > state.last_updated) {
+                json_object* name_obj = json_object_object_get(server_instance, "name");
+                json_object* map = json_object_object_get(server_instance, "map");
+                json_object* players_max = json_object_object_get(server_instance, "players_max");
+
+                strcpy(state.server_name, json_object_get_string(name_obj));
+                strcpy(state.map_name, json_object_get_string(map));
+                state.max_players = json_object_get_int(players_max);
+                state.last_updated = last_updated;
+                if (reset_timer_on_map_change) state.playtime_start = time(0);
+
+                valid_state_data = 1;
+                failure_count = 0;
+                break;
+            }
+            else {
+                failure_count++;
+                valid_state_data = 0;
+                break;
+            }
         }
     }
     if (!server_found) {
@@ -222,6 +255,14 @@ void get_server_info() {
 }
 
 void update_presence(){
+    // backoff after 40 seconds
+    if (failure_count > 160) {
+        valid_state_data = 1;
+        failure_count = 0;
+    }
+    // try again
+    if (!valid_state_data && (failure_count % 16 == 0)) { get_server_info(); }
+
     player_id = *((int*)(client_base+0x13b1cf0));
     get_current_game_state();
 
@@ -243,7 +284,7 @@ void update_presence(){
 
     char s_name_buf[128], m_name_buf[128];
     sprintf(s_name_buf, "%s", state.server_name);
-    sprintf(m_name_buf, "%s", state.map_name);
+    sprintf(m_name_buf, "Map: %s", state.map_name);
     presence.details = s_name_buf;
     presence.state = m_name_buf;
 
@@ -300,6 +341,7 @@ void init_rich_presence() {
     presence_enabled = config_get_bool_entry(presence_config, "enabled", 1);
     if (!presence_enabled) { return; }
 
+    state.last_updated = 0;
     discord_init();
     get_server_info();
     update_presence();
