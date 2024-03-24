@@ -228,10 +228,12 @@ void get_server_info() {
             if (last_updated > state.last_updated) {
                 json_object* name_obj = json_object_object_get(server_instance, "name");
                 json_object* map = json_object_object_get(server_instance, "map");
+                json_object* game_mode = json_object_object_get(server_instance, "game_mode");
                 json_object* players_max = json_object_object_get(server_instance, "players_max");
 
                 strcpy(state.server_name, json_object_get_string(name_obj));
                 strcpy(state.map_name, json_object_get_string(map));
+                strcpy(state.game_mode, json_object_get_string(game_mode));
                 state.max_players = json_object_get_int(players_max);
                 state.last_updated = last_updated;
                 if (reset_timer_on_map_change) state.playtime_start = time(0);
@@ -249,7 +251,8 @@ void get_server_info() {
     }
     if (!server_found) {
         strcpy(state.server_name, "(Local/Private server)");
-        strcpy(state.map_name, "");
+        strcpy(state.map_name, "(none)");
+        strcpy(state.game_mode, "(none)");
         state.max_players = 0;
     }
 }
@@ -282,7 +285,7 @@ void update_presence(){
     memset(&presence, 0, sizeof(DiscordRichPresence));
     presence.startTimestamp = state.playtime_start;
 
-    char s_name_buf[128], m_name_buf[128];
+    char s_name_buf[128], m_name_buf[128], ply_count_buf[128];;
     sprintf(s_name_buf, "%s", state.server_name);
     sprintf(m_name_buf, "Map: %s", state.map_name);
     presence.details = s_name_buf;
@@ -296,13 +299,32 @@ void update_presence(){
         if (state.current_team == -2) {
             presence.largeImageKey = "largeimagekey_teamselection";
             presence.largeImageText = "Choosing team";
+            Discord_UpdatePresence(&presence);
+            return;
         }
         else if (state.current_team == -1) {
             validator_enabled = 1;
             presence.largeImageKey = "largeimagekey_spectating";
             presence.largeImageText = "Spectating";
         }
+
+        if (strstr(state.game_mode, "tc")){
+            presence.smallImageKey = "smallimagekey_tc";
+            sprintf(ply_count_buf, "Players: %d/%d | Game mode: %s", player_count, state.max_players, state.game_mode);
+            presence.smallImageText = ply_count_buf;
+        }
+        else if (strstr(state.game_mode, "tc") == NULL && (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id)) {
+            presence.smallImageKey = "smallimagekey_intel";
+            sprintf(ply_count_buf, "Holds enemy intel! | Players: %d/%d\nGame mode: %s", player_count, state.max_players, state.game_mode);
+            presence.smallImageText = ply_count_buf;
+        }
         else {
+            presence.smallImageKey = "ace_of_spades";
+            sprintf(ply_count_buf, "Players: %d/%d | Game mode: %s", player_count, state.max_players, state.game_mode);
+            presence.smallImageText = ply_count_buf;
+        }
+
+        if (state.current_team > -1) {
             validator_enabled = 1;
             if (!state.is_alive) {
                 presence.largeImageKey = "largeimagekey_dead";
@@ -318,17 +340,6 @@ void update_presence(){
             else {
                 presence.largeImageKey = weapon_images[state.current_weapon];
                 presence.largeImageText = weapon_descriptions[state.current_weapon];
-            }
-            
-            if (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id) {
-                presence.smallImageKey = "smallimagekey_intel";
-                presence.smallImageText = "Holds enemy intel!";
-            }
-            else {
-                presence.smallImageKey = "ace_of_spades";
-                char ply_count_buf[128];
-                sprintf(ply_count_buf, "Players: %d/%d", player_count, state.max_players);
-                presence.smallImageText = ply_count_buf;
             }
         }
     }

@@ -22,6 +22,7 @@ typedef struct game_state {
     // online - state data trigger
     char server_name[32];
     char map_name[32];
+    char game_mode[32];
     int max_players;
     int64_t playtime_start;
     int last_updated;
