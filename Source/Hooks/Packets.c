@@ -112,7 +112,7 @@ int packet_handler() {
 			break;
 		case 15:
 			{
-				get_server_info();
+				get_server_info(1);
 				break;
 			}
 		case 17:

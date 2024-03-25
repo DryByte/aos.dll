@@ -8,7 +8,7 @@ void update_presence();
 
 void validate_player_count();
 void decrement_player_count();
-void get_server_info();
+void get_server_info(int triggered_by_packet);
 
 typedef struct game_state {
     // offline
@@ -25,5 +25,4 @@ typedef struct game_state {
     char game_mode[32];
     int max_players;
     int64_t playtime_start;
-    int last_updated;
 } game_state;

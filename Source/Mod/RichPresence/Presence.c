@@ -17,8 +17,8 @@ config_entry* presence_config;
 
 const char* app_id = "699358451494682714";
 
+int state_data_sleep_count = 1;
 int valid_state_data = 0;
-int failure_count = 0;
 
 int player_id = 0;
 int validator_enabled = 0;
@@ -100,7 +100,11 @@ void get_current_game_state() {
     state.intel_holder_t2 = *((int*)(client_base + 0x13cf924));
 }
 
-void get_server_info() {
+void get_server_info(int triggered_by_packet) {
+    if (triggered_by_packet) { 
+        valid_state_data = 0; 
+        if (reset_timer_on_map_change) state.playtime_start = time(0); 
+    }
     // request buildandshoot for serverlist (https://learn.microsoft.com/en-us/windows/win32/api/winhttp/nf-winhttp-winhttpquerydataavailable#examples)
     DWORD bytes_available = 0;
     DWORD bytes_read = 0;
@@ -119,42 +123,30 @@ void get_server_info() {
     if(session)
         connection = WinHttpConnect( session, L"services.buildandshoot.com",
                                 INTERNET_DEFAULT_HTTPS_PORT, 0 );
-    else {
-        failure_count++;
-        valid_state_data = 0;
+    else
         printf("no session\n");
-    }
 
     if(connection)
         request = WinHttpOpenRequest( connection, L"GET", L"/serverlist.json",
                                     NULL, WINHTTP_NO_REFERER, 
                                     WINHTTP_DEFAULT_ACCEPT_TYPES, 
                                     WINHTTP_FLAG_SECURE );
-    else {
-        failure_count++;
-        valid_state_data = 0;
+    else
         printf("no connection (variable)\n");
-    }
 
     if(request)
         is_successful = WinHttpSendRequest( request,
                                     WINHTTP_NO_ADDITIONAL_HEADERS, 0,
                                     WINHTTP_NO_REQUEST_DATA, 0, 
                                     0, 0 );
-    else {
-        failure_count++;
-        valid_state_data = 0;
+    else 
         printf("no request\n");
-    }
 
 
     if(is_successful)
         is_successful = WinHttpReceiveResponse( request, NULL );
-    else {
-        failure_count++;
-        valid_state_data = 0;
+    else 
         printf("no results\n");
-    }
 
     if(is_successful)
     {
@@ -179,7 +171,7 @@ void get_server_info() {
                                     bytes_available, &bytes_read ) )
                     printf( "Error %lu in WinHttpReadData.\n", GetLastError( ) );
                 else {
-                    for(unsigned int i = 0; i < bytes_read; i++) {
+                    for(size_t i = 0; i < bytes_read; i++) {
                         full_response[i + index_to_copy] = http_data_buffer[i];
                     }
                 }
@@ -190,11 +182,8 @@ void get_server_info() {
     }
 
 
-    if(!is_successful) {
-        failure_count++;
-        valid_state_data = 0;
+    if(!is_successful) 
         printf( "Error %ld has occurred.\n", GetLastError( ) );
-    }
 
     if(request) WinHttpCloseHandle(request);
     if(connection) WinHttpCloseHandle(connection);
@@ -215,19 +204,17 @@ void get_server_info() {
         identifier[expected_quote_pos] = '\0'; // remove useless quote
 
     int server_found = 0;
-    for (unsigned int index = 0; index < json_object_array_length(serverlist); index++) {
+    for (size_t index = 0; index < json_object_array_length(serverlist); index++) {
         json_object* server_instance = json_object_array_get_idx(serverlist, index);
         json_object* server_identifier = json_object_object_get(server_instance, "identifier");
 
         if (!strcmp(identifier, json_object_get_string(server_identifier))) {
             server_found = 1;
 
-            json_object* json_last_updated = json_object_object_get(server_instance, "last_updated");
-            int last_updated = json_object_get_int(json_last_updated);
+            json_object* map = json_object_object_get(server_instance, "map");
 
-            if (last_updated > state.last_updated) {
+            if (strcmp(json_object_get_string(map), state.map_name)) { // if maps not the same
                 json_object* name_obj = json_object_object_get(server_instance, "name");
-                json_object* map = json_object_object_get(server_instance, "map");
                 json_object* game_mode = json_object_object_get(server_instance, "game_mode");
                 json_object* players_max = json_object_object_get(server_instance, "players_max");
 
@@ -235,16 +222,8 @@ void get_server_info() {
                 strcpy(state.map_name, json_object_get_string(map));
                 strcpy(state.game_mode, json_object_get_string(game_mode));
                 state.max_players = json_object_get_int(players_max);
-                state.last_updated = last_updated;
-                if (reset_timer_on_map_change) state.playtime_start = time(0);
 
                 valid_state_data = 1;
-                failure_count = 0;
-                break;
-            }
-            else {
-                failure_count++;
-                valid_state_data = 0;
                 break;
             }
         }
@@ -254,22 +233,25 @@ void get_server_info() {
         strcpy(state.map_name, "(none)");
         strcpy(state.game_mode, "(none)");
         state.max_players = 0;
+        valid_state_data = 1;
     }
 }
 
-void update_presence(){
-    // backoff after 40 seconds
-    if (failure_count > 160) {
-        valid_state_data = 1;
-        failure_count = 0;
+void update_presence() {
+    if (!valid_state_data) {
+        if (state_data_sleep_count > 240) {
+            state_data_sleep_count = 1; 
+            valid_state_data = 1;
+        }
+        if (state_data_sleep_count % 40 == 0) get_server_info(0);
+        state_data_sleep_count++;
     }
-    // try again
-    if (!valid_state_data && (failure_count % 16 == 0)) { get_server_info(); }
 
     player_id = *((int*)(client_base+0x13b1cf0));
     get_current_game_state();
 
     if ((state.is_alive == old_state.is_alive) &&
+        (!strcmp(state.map_name, old_state.map_name)) &&
         (state.current_team == old_state.current_team) &&
         (state.current_tool == old_state.current_tool) &&
         (state.current_weapon == old_state.current_weapon) &&
@@ -280,6 +262,11 @@ void update_presence(){
 
     old_state = state;
     old_player_count = player_count;
+    
+    char game_mode_tolower[32];
+    for (size_t i = 0; i < strlen(state.game_mode); i++) {
+        game_mode_tolower[i] = tolower(state.game_mode[i]);
+    }
 
     DiscordRichPresence presence;
     memset(&presence, 0, sizeof(DiscordRichPresence));
@@ -308,12 +295,12 @@ void update_presence(){
             presence.largeImageText = "Spectating";
         }
 
-        if (strstr(state.game_mode, "tc")){
+        if (strstr(game_mode_tolower, "tc")){
             presence.smallImageKey = "smallimagekey_tc";
             sprintf(ply_count_buf, "Players: %d/%d | Game mode: %s", player_count, state.max_players, state.game_mode);
             presence.smallImageText = ply_count_buf;
         }
-        else if (strstr(state.game_mode, "tc") == NULL && (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id)) {
+        else if (strstr(game_mode_tolower, "tc") == NULL && (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id)) {
             presence.smallImageKey = "smallimagekey_intel";
             sprintf(ply_count_buf, "Holds enemy intel! | Players: %d/%d\nGame mode: %s", player_count, state.max_players, state.game_mode);
             presence.smallImageText = ply_count_buf;
@@ -352,9 +339,10 @@ void init_rich_presence() {
     presence_enabled = config_get_bool_entry(presence_config, "enabled", 1);
     if (!presence_enabled) { return; }
 
-    state.last_updated = 0;
     discord_init();
-    get_server_info();
+    // intentional 2 calls, it works only this way on map loading stage idk why
+    get_server_info(0);
+    get_server_info(0);
     update_presence();
 
     reset_timer_on_map_change = config_get_bool_entry(presence_config, "reset_timer_on_map_change", 1);
