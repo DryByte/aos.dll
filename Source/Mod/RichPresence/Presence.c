@@ -100,9 +100,10 @@ void get_current_game_state() {
     state.intel_holder_t2 = *((int*)(client_base + 0x13cf924));
 }
 
-void get_server_info(int triggered_by_packet) {
+void get_server_info(int triggered_by_packet, uint8_t game_mode_id) {
     if (triggered_by_packet) { 
         valid_state_data = 0; 
+        state.game_mode_id = game_mode_id;
         if (reset_timer_on_map_change) state.playtime_start = time(0); 
     }
     // request buildandshoot for serverlist (https://learn.microsoft.com/en-us/windows/win32/api/winhttp/nf-winhttp-winhttpquerydataavailable#examples)
@@ -243,7 +244,7 @@ void update_presence() {
             state_data_sleep_count = 1; 
             valid_state_data = 1;
         }
-        if (state_data_sleep_count % 40 == 0) get_server_info(0);
+        if (state_data_sleep_count % 40 == 0) get_server_info(0, -1);
         state_data_sleep_count++;
     }
 
@@ -263,11 +264,6 @@ void update_presence() {
     old_state = state;
     old_player_count = player_count;
     
-    char game_mode_tolower[32];
-    for (size_t i = 0; i < strlen(state.game_mode); i++) {
-        game_mode_tolower[i] = tolower(state.game_mode[i]);
-    }
-
     DiscordRichPresence presence;
     memset(&presence, 0, sizeof(DiscordRichPresence));
     presence.startTimestamp = state.playtime_start;
@@ -295,12 +291,12 @@ void update_presence() {
             presence.largeImageText = "Spectating";
         }
 
-        if (strstr(game_mode_tolower, "tc")){
+        if (state.game_mode_id){
             presence.smallImageKey = "smallimagekey_tc";
             sprintf(ply_count_buf, "Players: %d/%d | Game mode: %s", player_count, state.max_players, state.game_mode);
             presence.smallImageText = ply_count_buf;
         }
-        else if (strstr(game_mode_tolower, "tc") == NULL && (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id)) {
+        else if (state.game_mode_id == 0 && (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id)) {
             presence.smallImageKey = "smallimagekey_intel";
             sprintf(ply_count_buf, "Holds enemy intel! | Players: %d/%d\nGame mode: %s", player_count, state.max_players, state.game_mode);
             presence.smallImageText = ply_count_buf;
@@ -341,8 +337,8 @@ void init_rich_presence() {
 
     discord_init();
     // intentional 2 calls, it works only this way on map loading stage idk why
-    get_server_info(0);
-    get_server_info(0);
+    get_server_info(0, -1);
+    get_server_info(0, -1);
     update_presence();
 
     reset_timer_on_map_change = config_get_bool_entry(presence_config, "reset_timer_on_map_change", 1);

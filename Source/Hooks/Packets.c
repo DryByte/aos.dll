@@ -112,7 +112,8 @@ int packet_handler() {
 			break;
 		case 15:
 			{
-				get_server_info(1);
+				struct packet_state_data* state_data = (struct packet_state_data*)PacketBuffer->data;
+				get_server_info(1, state_data->game_mode_id);
 				break;
 			}
 		case 17:
