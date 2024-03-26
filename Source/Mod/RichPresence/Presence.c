@@ -82,6 +82,7 @@ void validate_player_count() {
         for(int i = 0; i < 32; i++) {
             if (*(int*)(player_connected_addr + (i * 0x3a8)) == 1) ply_count++;
         }
+        if (ply_count == 0) { ply_count = 1; } // there is always a player (this is here because of a loop adding to ply_count, so just making ply_count = 1 wont go well)
 
         player_count = ply_count;
     }

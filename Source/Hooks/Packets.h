@@ -53,7 +53,7 @@ struct packet_handshake_back
 	int challenge;
 };
 
-struct packet_state_data 
+struct __attribute__((__packed__)) packet_state_data 
 {
 	uint8_t player_id;
 	uint8_t fog_blue;
@@ -65,8 +65,8 @@ struct packet_state_data
 	uint8_t team2_blue;
 	uint8_t team2_green;
 	uint8_t team2_red;
-	char team1_name[11];
-	char team2_name[11];
+	char team1_name[10];
+	char team2_name[10];
 	uint8_t game_mode_id;
 };
 
