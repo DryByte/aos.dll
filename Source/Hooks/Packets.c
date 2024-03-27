@@ -91,7 +91,7 @@ int packet_handler() {
 	switch(PacketBuffer->data[0]) {
 		case 12:
 			{
-				validate_player_count();
+				trigger_player_count_validation();
 				break;
 			}
 		case 13:

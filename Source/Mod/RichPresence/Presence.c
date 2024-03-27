@@ -17,15 +17,17 @@ config_entry* presence_config;
 
 const char* app_id = "699358451494682714";
 
-int state_data_sleep_count = 1;
-int valid_state_data = 0;
-
 int player_id = 0;
-int validator_enabled = 0;
 int reset_timer_on_map_change = 1;
 
-int player_count = 1;
-int old_player_count = 1;
+int state_data_sleep_count = 1,
+    valid_state_data = 0;
+
+int player_count = 0, 
+    old_player_count = 0;
+
+int ply_count_sleep_count = 0,
+    ply_count_delay = 0;
 
 const char* tool_descriptions[4] = {
     "Digging",
@@ -74,19 +76,20 @@ void discord_shutdown() {
     Discord_Shutdown();
 }
 
-void validate_player_count() {
-    if (validator_enabled) {
-        int ply_count = 0;
-        char* player_connected_addr = (char*)(client_base + 0x7ce94);
-        
-        for(int i = 0; i < 32; i++) {
-            if (*(int*)(player_connected_addr + (i * 0x3a8)) == 1) ply_count++;
-        }
-        if (ply_count == 0) { ply_count = 1; } // there is always a player (this is here because of a loop adding to ply_count, so just making ply_count = 1 wont go well)
 
-        player_count = ply_count;
+void trigger_player_count_validation() {
+    ply_count_delay = 1;
+}
+
+void validate_player_count() {
+    int ply_count = 0;
+    char* player_connected_addr = (char*)(client_base + 0x7ce94);
+    
+    for(int i = 0; i < 32; i++) {
+        if (*(int*)(player_connected_addr + (i * 0x3a8)) == 1) ply_count++;
     }
-    else return;
+
+    player_count = ply_count;
 }
 void decrement_player_count() {
     player_count--;
@@ -240,6 +243,16 @@ void get_server_info(int triggered_by_packet, uint8_t game_mode_id) {
 }
 
 void update_presence() {
+    if (ply_count_delay) {
+        ply_count_sleep_count++;
+
+        if (ply_count_sleep_count > 4) {
+            ply_count_delay = 0;
+            ply_count_sleep_count = 0;
+            validate_player_count();
+        }
+    }
+
     if (!valid_state_data) {
         if (state_data_sleep_count > 240) {
             state_data_sleep_count = 1; 
@@ -287,19 +300,18 @@ void update_presence() {
             return;
         }
         else if (state.current_team == -1) {
-            validator_enabled = 1;
             presence.largeImageKey = "largeimagekey_spectating";
             presence.largeImageText = "Spectating";
         }
 
-        if (state.game_mode_id){
+        if (state.game_mode_id) {
             presence.smallImageKey = "smallimagekey_tc";
             sprintf(ply_count_buf, "Players: %d/%d | Game mode: %s", player_count, state.max_players, state.game_mode);
             presence.smallImageText = ply_count_buf;
         }
         else if (state.game_mode_id == 0 && (state.intel_holder_t1 == player_id || state.intel_holder_t2 == player_id)) {
             presence.smallImageKey = "smallimagekey_intel";
-            sprintf(ply_count_buf, "Holds enemy intel! | Players: %d/%d\nGame mode: %s", player_count, state.max_players, state.game_mode);
+            sprintf(ply_count_buf, "Holds enemy intel! | Players: %d/%d | Game mode: %s", player_count, state.max_players, state.game_mode);
             presence.smallImageText = ply_count_buf;
         }
         else {
@@ -309,7 +321,6 @@ void update_presence() {
         }
 
         if (state.current_team > -1) {
-            validator_enabled = 1;
             if (!state.is_alive) {
                 presence.largeImageKey = "largeimagekey_dead";
                 presence.largeImageText = "Dead";
@@ -337,14 +348,12 @@ void init_rich_presence() {
     if (!presence_enabled) { return; }
 
     discord_init();
-    // intentional 2 calls, it works only this way on map loading stage idk why
+    // intentional 2 calls, it works only this way on map loading stage idk why (again on WINDOWS)
     get_server_info(0, -1);
     get_server_info(0, -1);
     update_presence();
 
     reset_timer_on_map_change = config_get_bool_entry(presence_config, "reset_timer_on_map_change", 1);
-    state.playtime_start = time(0);
 
     save_config();
-    //create_richpresence_menu();
 }

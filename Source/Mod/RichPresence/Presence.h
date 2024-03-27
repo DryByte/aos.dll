@@ -6,7 +6,7 @@ extern int client_base;
 void init_rich_presence();
 void update_presence();
 
-void validate_player_count();
+void trigger_player_count_validation();
 void decrement_player_count();
 void get_server_info(int triggered_by_packet, uint8_t game_mode_id);
 

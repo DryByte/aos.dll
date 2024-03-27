@@ -55,6 +55,7 @@ struct packet_handshake_back
 
 struct __attribute__((__packed__)) packet_state_data 
 {
+	uint8_t packet_id;
 	uint8_t player_id;
 	uint8_t fog_blue;
 	uint8_t fog_green;
