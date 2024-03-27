@@ -354,6 +354,7 @@ void init_rich_presence() {
     update_presence();
 
     reset_timer_on_map_change = config_get_bool_entry(presence_config, "reset_timer_on_map_change", 1);
+    state.playtime_start = time(0)
 
     save_config();
 }
