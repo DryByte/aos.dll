@@ -2,6 +2,7 @@
 #include <Voxlap.h>
 #include <Rendering.h>
 #include <Menu.h>
+#include <Presence.h>
 
 ENetPacket* PacketBuffer;
 ENetPeer* peer;
@@ -88,6 +89,11 @@ int packet_handler() {
 	// so we can "override" behaviours
 	int skip = 0;
 	switch(PacketBuffer->data[0]) {
+		case 12:
+			{
+				trigger_player_count_validation();
+				break;
+			}
 		case 13:
 			{
 				struct packet_block_action* block_action = (struct packet_block_action*)PacketBuffer->data;
@@ -104,6 +110,12 @@ int packet_handler() {
 				}
 			}
 			break;
+		case 15:
+			{
+				struct packet_state_data* state_data = (struct packet_state_data*)PacketBuffer->data;
+				get_server_info(1, state_data->game_mode_id);
+				break;
+			}
 		case 17:
 			{
 				uint8_t* buf = (uint8_t*)malloc(PacketBuffer->dataLength*sizeof(uint8_t));
@@ -117,6 +129,11 @@ int packet_handler() {
 					add_custom_message(p->chat_type, p->msg);
 			}
 			break;
+		case 20:
+			{
+				decrement_player_count();
+				break;
+			}
 		case 31:
 			{
 				struct packet_handshake_back* fds = (struct packet_handshake_back*)PacketBuffer->data;

@@ -53,6 +53,24 @@ struct packet_handshake_back
 	int challenge;
 };
 
+struct __attribute__((__packed__)) packet_state_data 
+{
+	uint8_t packet_id;
+	uint8_t player_id;
+	uint8_t fog_blue;
+	uint8_t fog_green;
+	uint8_t fog_red;
+	uint8_t team1_blue;
+	uint8_t team1_green;
+	uint8_t team1_red;
+	uint8_t team2_blue;
+	uint8_t team2_green;
+	uint8_t team2_red;
+	char team1_name[10];
+	char team2_name[10];
+	uint8_t game_mode_id;
+};
+
 void map_packet_hook(void);
 void packet_hook(void);
 void send_msg(char *msg);
