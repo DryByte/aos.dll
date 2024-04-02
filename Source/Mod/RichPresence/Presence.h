@@ -20,6 +20,7 @@ typedef struct game_state {
     int intel_holder_t2;
 
     // online - state data trigger
+    char identifier[32];
     char server_name[32];
     char map_name[32];
     char game_mode[32];
@@ -27,3 +28,8 @@ typedef struct game_state {
     int max_players;
     int64_t playtime_start;
 } game_state;
+
+typedef struct presence_button {
+    char label[32];
+    char url[128];
+} presence_button;
