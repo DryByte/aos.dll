@@ -97,7 +97,9 @@ struct Menu {
 	int outline_color;
 	int background_color;
 	int always_hidden;
-
+	int buffer_x;
+	int buffer_y;
+	int* buffer;
 	char title[32];
 	void* items[MAX_MENU_ITEMS];
 };
