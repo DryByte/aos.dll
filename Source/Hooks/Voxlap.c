@@ -47,7 +47,9 @@ void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, l
 		"mov %4, %%ecx\n\t" // ty
 		"push %3\n\t" // tx
 		
-		"push %2\n\t" // tp
+		"mov %2, %%edi\n\t"
+		"shll $0x2, %%edi\n\t"
+		"push %%edi\n\t" // tp, multiply by 4, since it will always be an int
 
 		"push %1\n\t" // buffer
 		"mov %0, %%edi\n\t"
