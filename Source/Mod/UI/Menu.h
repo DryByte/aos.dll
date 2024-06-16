@@ -115,4 +115,6 @@ struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_siz
 struct ItemSlide* create_slide(struct Menu* menu, int minValue, int maxValue, int* interact);
 void handle_keyboard();
 struct Menu* create_menu(int x, int y, int outline, char* title);
+void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_y, int size_x, int size_y);
+void draw_line(struct Menu* menu, int x1, int y1, int x2, int y2);
 void draw_menus();

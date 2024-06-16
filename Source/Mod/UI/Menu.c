@@ -358,29 +358,6 @@ int its_new_line_time(int position, int currentLinePos, int maxLine, char* buffe
 	return newline;
 }
 
-int testbuf[10*20] = {
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-		};
-
 void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_y, int size_x, int size_y) {
 	if (menu->x_size != menu->buffer_x || menu->y_size != menu->buffer_y) {
 		free(menu->buffer);
@@ -389,19 +366,49 @@ void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_
 		menu->buffer = calloc(menu->buffer_x*menu->buffer_y, 4);
 	}
 
-	int true_max_size_x = MIN(size_x, menu->buffer_x);
-	int true_max_size_y = MIN(size_y, menu->buffer_y);
+	int true_max_size_x = MIN(size_x+offset_x, menu->buffer_x);
+	int true_max_size_y = MIN(size_y+offset_y, menu->buffer_y);
 
 	for (int x = offset_x; x < true_max_size_x; x++) {
 		for (int y = offset_y; y < true_max_size_y; y++) {
-			y+=offset_y;
-			*((menu->buffer)+(x+(y*menu->buffer_x))) = *(copy_buff+(x-offset_x+(y-offset_y)*size_x));
+			int target_color = *(copy_buff+(x-offset_x+(y-offset_y)*size_x));
+			int source_color = *((menu->buffer)+(x+(y*menu->buffer_x)));
+
+			if ((target_color >> 24&255) == 0x0)
+				continue;
+
+			if ((target_color >> 24&255) < 0xff && source_color != 0) {
+				target_color = target_color+source_color;
+			}
+
+			*((menu->buffer)+(x+(y*menu->buffer_x))) = target_color;
 		}
 	}
-
-	drawtile((long)menu->buffer, menu->buffer_x, menu->buffer_x, menu->buffer_y, 0, 0, 30, 30, 1, 1, -1);
 }
 
+void draw_line(struct Menu* menu, int x1, int y1, int x2, int y2) {
+	int dx = x2-x1;
+	int dy = y2-y1;
+
+	int* tempbuf = calloc(dx*dy, 4);
+	int D = 2*dy-dx;
+	int y = 0;
+
+	for(int x = 0; x <= dx; x++) {
+		*(tempbuf+x+y*dx) = 0xffff0000;
+		if (D > 0) {
+			y += 1;
+			D = D-2*dx;
+		}
+
+		D = D + 2*dy;
+	}
+
+	draw_to_buffer(menu, tempbuf, x1, y1, dx, dy);
+	free(tempbuf);
+}
+
+int fsrun = 1;
 void draw_menus() {
 	int menusLen = get_next_available_menu_id();
 
@@ -419,8 +426,14 @@ void draw_menus() {
 
 		
 		if (menu_id == 1) {
-			draw_to_buffer(menu, testbuf, 0, 0, 10, 20);
-			draw_to_buffer(menu, *(int**)(client_base+0x51758), 10, 0, 800, 600);
+
+			if (fsrun) {
+				fsrun = 0;
+			draw_line(menu, 5, 5, 5, 10);
+			//draw_to_buffer(menu, *(int**)(client_base+0x51758), 0, 0, 800, 600);
+			
+			}
+			drawtile((long)menu->buffer, menu->buffer_x, menu->buffer_x, menu->buffer_y, 0, 0, 30, 30, 1, 1, -1);
 		}
 
 		int largestX = MAX(menu->x_size, (int)strlen(menu->title)*8);
