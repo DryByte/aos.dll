@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <Voxlap.h>
 #include <AosConfig.h>
+#include <math.h>
 
 #define MAX(x,y) (x>y) ? x : y
 #define MIN(x,y) (x<y) ? x : y
@@ -390,18 +391,34 @@ void draw_line(struct Menu* menu, int x1, int y1, int x2, int y2) {
 	int dx = x2-x1;
 	int dy = y2-y1;
 
-	int* tempbuf = calloc(dx*dy, 4);
-	int D = 2*dy-dx;
-	int y = 0;
+    int* tempbuf = calloc(dx*dy, 4);
 
-	for(int x = 0; x <= dx; x++) {
-		*(tempbuf+x+y*dx) = 0xffff0000;
-		if (D > 0) {
-			y += 1;
-			D = D-2*dx;
+	if (x2 >= y2) {
+		int D = 2*dy - dx;
+		int y = 0;
+
+		for (int x = 0; x < x2-x1; x++) {
+			*(tempbuf+x+y*dx) = 0xffff0000;
+			if (D > 0) {
+				y = y+1;
+				D = D-2*dx;
+			}
+
+			D = D+2*dy;
 		}
+	} else {
+		int D = 2*dx - dy;
+		int x = 0;
 
-		D = D + 2*dy;
+		for (int y = 0; y < y2-y1; y++) {
+			*(tempbuf+x+y*dx) = 0xffff0000;
+			if (D > 0) {
+				x = x+1;
+				D = D-2*dy;
+			}
+
+			D = D+2*dx;
+		}
 	}
 
 	draw_to_buffer(menu, tempbuf, x1, y1, dx, dy);
@@ -429,11 +446,9 @@ void draw_menus() {
 
 			if (fsrun) {
 				fsrun = 0;
-			draw_line(menu, 5, 5, 5, 10);
-			//draw_to_buffer(menu, *(int**)(client_base+0x51758), 0, 0, 800, 600);
-			
+				draw_line(menu, 10, 5, 25, 30);
 			}
-			drawtile((long)menu->buffer, menu->buffer_x, menu->buffer_x, menu->buffer_y, 0, 0, 30, 30, 1, 1, -1);
+			drawtile((long)menu->buffer, menu->buffer_x, menu->buffer_x, menu->buffer_y, 0, 0, 30, 30, 5, 5, -1);
 		}
 
 		int largestX = MAX(menu->x_size, (int)strlen(menu->title)*8);
