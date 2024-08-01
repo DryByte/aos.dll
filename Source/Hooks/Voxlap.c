@@ -16,10 +16,17 @@ void drawline2d(int x1, int y1, int x2, int y2, int color) {
 	:: "r" (client_base), "g" (x1), "g" (y1), "g" (x2), "g" (y2), "g" (color));
 }
 
-//(tf,tp,tx,ty,tcx,tcy): Tile source, (tcx&tcy) is texel (<<16) at (sx,sy)
-//(sx,sy,xz,yz) screen coordinates and x&y zoom, all (<<16)
-//(black,white): black & white shade scale (ARGB format)
-//   Note: if alphas of black&white are same, then alpha channel ignored
+//Draws a 32-bit color texture from memory to the screen. This is the
+//   low-level function used to draw text loaded from a PNG,JPG,TGA,GIF.
+//     tf: pointer to top-left corner of SOURCE picture
+//     tp: pitch (bytes per line) of the SOURCE picture
+//  tx,ty: dimensions of the SOURCE picture
+//tcx,tcy: texel (<<16) at (sx,sy). Set this to (0,0) if you want (sx,sy)
+//            to be the top-left corner of the destination
+//  sx,sy: screen coordinate (matches the texture at tcx,tcy)
+//  xz,yz: x&y zoom, all (<<16). Use (65536,65536) for no zoom change
+//black,white: shade scale (ARGB format). For no effects, use (0,-1)
+//   NOTE: if alphas of black&white are same, then alpha channel ignored
 void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, long sy, long xz, long yz, long black) {
 	asm volatile(
 		"push %11\n\t" //black
@@ -40,7 +47,9 @@ void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, l
 		"mov %4, %%ecx\n\t" // ty
 		"push %3\n\t" // tx
 		
-		"push %2\n\t" // tp
+		"mov %2, %%edi\n\t"
+		"shll $0x2, %%edi\n\t"
+		"push %%edi\n\t" // tp, multiply by 4, since it will always be an int
 
 		"push %1\n\t" // buffer
 		"mov %0, %%edi\n\t"

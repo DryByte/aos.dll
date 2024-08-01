@@ -209,6 +209,11 @@ struct Menu* create_menu(int x, int y, int outline, char* title) {
 	menu->pin = 0;
 	menu->minimized = 0;
 	menu->always_hidden = 0;
+
+	menu->buffer_x = menu->x_size; // use this to detect size changes for realloc
+	menu->buffer_y = menu->y_size;
+	menu->buffer = calloc(menu->x_size*menu->y_size, 4);
+
 	strncpy(menu->title, title, 32);
 
 	menus[menu_id] = menu;
@@ -353,6 +358,50 @@ int its_new_line_time(int position, int currentLinePos, int maxLine, char* buffe
 	return newline;
 }
 
+int testbuf[10*20] = {
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff, 0xffff00ff, 0xffff00ff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+		};
+
+void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_y, int size_x, int size_y) {
+	if (menu->x_size != menu->buffer_x || menu->y_size != menu->buffer_y) {
+		free(menu->buffer);
+		menu->buffer_x = menu->x_size;
+		menu->buffer_y = menu->y_size;
+		menu->buffer = calloc(menu->buffer_x*menu->buffer_y, 4);
+	}
+
+	int true_max_size_x = MIN(size_x, menu->buffer_x);
+	int true_max_size_y = MIN(size_y, menu->buffer_y);
+
+	for (int x = offset_x; x < true_max_size_x; x++) {
+		for (int y = offset_y; y < true_max_size_y; y++) {
+			y+=offset_y;
+			*((menu->buffer)+(x+(y*menu->buffer_x))) = *(copy_buff+(x-offset_x+(y-offset_y)*size_x));
+		}
+	}
+
+	drawtile((long)menu->buffer, menu->buffer_x, menu->buffer_x, menu->buffer_y, 0, 0, 30, 30, 1, 1, -1);
+}
+
 void draw_menus() {
 	int menusLen = get_next_available_menu_id();
 
@@ -366,6 +415,13 @@ void draw_menus() {
 			continue;
 
 		int itemsLen = get_next_available_item_id(menu);
+
+
+		
+		if (menu_id == 1) {
+			draw_to_buffer(menu, testbuf, 0, 0, 10, 20);
+			draw_to_buffer(menu, *(int**)(client_base+0x51758), 10, 0, 800, 600);
+		}
 
 		int largestX = MAX(menu->x_size, (int)strlen(menu->title)*8);
 		int largestY = 8;
