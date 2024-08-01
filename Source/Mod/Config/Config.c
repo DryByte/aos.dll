@@ -121,7 +121,7 @@ config_entry* config_get_section(char* section_name) {
 }
 
 void save_config() {
-	json_object_to_file("./config.json", config_object);
+	json_object_to_file_ext("./config.json", config_object, JSON_C_TO_STRING_PRETTY);
 }
 
 void init_config() {
