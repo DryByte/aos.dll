@@ -24,7 +24,7 @@ const char* app_id = "699358451494682714";
 
 int player_id = 0;
 int reset_timer_on_map_change = 1;
-int presence_show_buttons = 1;
+int show_join_button = 1;
 
 int state_data_sleep_count = 1,
     valid_state_data = 0;
@@ -212,7 +212,8 @@ void get_server_info(int triggered_by_packet, uint8_t game_mode_id) {
     int expected_quote_pos = strlen(identifier) - 1;
     if (identifier[expected_quote_pos] == '"' || identifier[expected_quote_pos] == '/') // FKN 2 hours to find out that on windows, when the game is not launched directly from a debugger,
                                                                                         // it just adds a slash to the end of aos identifier, because why not... WINDOWS MOMENT
-        identifier[expected_quote_pos] = '\0'; // remove useless quote
+        identifier[expected_quote_pos] = '\0'; // remove useless quote/slash
+    strcpy(state.identifier, identifier);
 
     int server_found = 0;
     for (size_t index = 0; index < json_object_array_length(serverlist); index++) {
@@ -221,7 +222,7 @@ void get_server_info(int triggered_by_packet, uint8_t game_mode_id) {
 
         if (!strcmp(identifier, json_object_get_string(server_identifier))) {
             server_found = 1;
-            strcpy(state.identifier, identifier);
+            
             json_object* map = json_object_object_get(server_instance, "map");
 
             if (strcmp(json_object_get_string(map), state.map_name)) { // if maps not the same
@@ -294,16 +295,16 @@ void update_presence() {
     presence.details = s_name_buf;
     presence.state = m_name_buf;
 
-    if (presence_show_buttons){
+    if (show_join_button)
+    {
         presence_button join_button;
         sprintf(join_button.label, "%s", "Join");
         sprintf(join_button.url, "%s", state.identifier);
-
         presence.buttonLabels[0] = join_button.label;
         presence.buttonUrls[0] = join_button.url;
-        presence.buttonLabels[1] = serverlist_button.label;
-        presence.buttonUrls[1] = serverlist_button.url;
     }
+    presence.buttonLabels[1] = serverlist_button.label;
+    presence.buttonUrls[1] = serverlist_button.url;
 
     if (player_id == -1) {
         presence.largeImageKey = "largeimagekey_loading";
@@ -365,7 +366,7 @@ void init_rich_presence() {
     if (!presence_enabled) { return; }
 
     discord_init();
-    presence_show_buttons = config_get_bool_entry(presence_config, "show_buttons", 1);
+    show_join_button = config_get_bool_entry(presence_config, "show_join_button", 1);
     // intentional 2 calls, it works only this way on map loading stage idk why (again on WINDOWS)
     get_server_info(0, -1);
     get_server_info(0, -1);
