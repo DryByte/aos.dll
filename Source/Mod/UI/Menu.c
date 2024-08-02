@@ -846,6 +846,8 @@ void draw_menus() {
 						switchBtnYpos += menu->y_size+switch_btn->y_pos;
 					}
 
+					color[0] = switch_btn->color;
+
 					if (interaction && check_cursor_over(switchBtnXpos, switchBtnYpos,
 													   switchBtnXpos+switch_btn->x_size,
 													   switchBtnYpos+switch_btn->y_size))
@@ -872,30 +874,12 @@ void draw_menus() {
 							secondary_color[0] = switch_btn->disabled_color;
 						}
 					}
-					
-
-					// } else {
-					// 	int clicking = switch_btn->is_clicking;
-					// 	switch_btn->is_clicking = 0;
-					// 	if (clicking) {
-					// 		if(switch_btn->enabled) {
-					// 			switch_btn->enabled = 0;
-					// 			switch_btn->disable_event(menu, switch_btn);
-					// 			secondary_color[0] = switch_btn->disabled_color;
-					// 		}
-					// 		else {
-					// 			switch_btn->enabled = 1;
-					// 			switch_btn->enable_event(menu, switch_btn);
-					// 			secondary_color[0] = switch_btn->enabled_color;
-					// 		}
-					// 	}
-							
-					// 	color[0] = switch_btn->color;
-					// }
-
 
 					drawtile((long)color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, switch_btn->x_size, switch_btn->y_size, -1);
-					drawtile((long)secondary_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, switch_btn->x_size, switch_btn->y_size, -1);
+					if (switch_btn->enabled) 
+						drawtile((long)secondary_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos + (switch_btn->x_size)/2, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
+					else 
+						drawtile((long)secondary_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
 					// later for label
 					// int textlen = strlen(switch_btn->text);
 					// draw_text(switchBtnXpos+switch_btn->x_size/2-textlen*3, switchBtnYpos+switch_btn->y_size/2-4, 0x0, switch_btn->text);
