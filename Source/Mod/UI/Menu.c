@@ -194,6 +194,34 @@ struct ItemSlide* create_slide(struct Menu* menu, int min_value, int max_value, 
 	return slide;
 }
 
+struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, void (*enable_func)(), void (*disable_func)(), int enabled) {
+	int id = get_next_available_item_id(menu);
+
+	struct ItemSwitchButton* btn = calloc(sizeof(struct ItemSwitchButton) + 32, 1);
+	btn->type = SWITCH_BUTTON_ITEM;
+	btn->id = id;
+	btn->enabled = enabled;
+	// colors in ARGB!!!
+	btn->enabled_color = 0xff00ff00;
+	btn->disabled_color = 0xffff0000;
+	btn->hold_color = 0xfff1a42e;
+	btn->color = 0xff757575;
+	btn->x_size = 40;
+	btn->y_size = 15;
+	btn->x_pos = 0;
+	btn->y_pos = 0;
+	btn->interval = 0;
+	btn->last_interaction = 0;
+	btn->enable_event = enable_func;
+	btn->disable_event = disable_func;
+	strncpy(btn->label, label, 32);
+
+	menu->items[id] = btn;
+	menus[menu->id] = menu;
+
+	return btn;
+}
+
 struct Menu* create_menu(int x, int y, int outline, char* title) {
 	int menu_id = get_next_available_menu_id();
 	struct Menu* menu = calloc(sizeof(struct Menu)+32, 1);	
@@ -428,6 +456,7 @@ void draw_menus() {
 
 		// title background
 		long color[] = {0xe0000000};
+		long secondary_color[] = {0x00000000};
 		drawtile((long)color, 1, 1, 1, 0x0, 0x0, menu->x_pos, menu->y_pos, menu->x_size, largestY, -1);
 		draw_text(menu->x_pos, menu->y_pos, 0xffffff, menu->title);
 
@@ -797,6 +826,89 @@ void draw_menus() {
 					draw_square(slideXPos, slideYPos, slideXPos+slide->x_size, slideYPos+slide->y_size, 0x0);
 
 					break;
+					//todo
+				case SWITCH_BUTTON_ITEM:
+					struct ItemSwitchButton* switch_btn = (struct ItemSwitchButton*)item;
+
+					if (menu->minimized)
+						break;
+
+					int switchBtnXpos = menu->x_pos+switch_btn->x_pos;
+					int switchBtnYpos = menu->y_pos;
+
+					if (switch_btn->x_pos < 0) {
+						switchBtnXpos += menu->x_size;
+					}
+
+					if (switch_btn->y_pos >= 0) {
+						switchBtnYpos += (!switch_btn->y_pos) ? largestY : switch_btn->y_pos;
+					} else {
+						switchBtnYpos += menu->y_size+switch_btn->y_pos;
+					}
+
+					if (interaction && check_cursor_over(switchBtnXpos, switchBtnYpos,
+													   switchBtnXpos+switch_btn->x_size,
+													   switchBtnYpos+switch_btn->y_size))
+					{
+						secondary_color[0] = switch_btn->hold_color;
+						if (!switch_btn->is_holding) {
+							if (switch_btn->enabled) {
+								switch_btn->disable_event(menu, switch_btn);
+								switch_btn->enabled = 0;
+							}
+							else {
+								switch_btn->enable_event(menu, switch_btn);
+								switch_btn->enabled = 1;
+							}
+							switch_btn->is_holding = 1;
+						}
+					}
+					else {
+						switch_btn->is_holding = 0;
+						if (switch_btn->enabled) {
+							secondary_color[0] = switch_btn->enabled_color;
+						}
+						else {
+							secondary_color[0] = switch_btn->disabled_color;
+						}
+					}
+					
+
+					// } else {
+					// 	int clicking = switch_btn->is_clicking;
+					// 	switch_btn->is_clicking = 0;
+					// 	if (clicking) {
+					// 		if(switch_btn->enabled) {
+					// 			switch_btn->enabled = 0;
+					// 			switch_btn->disable_event(menu, switch_btn);
+					// 			secondary_color[0] = switch_btn->disabled_color;
+					// 		}
+					// 		else {
+					// 			switch_btn->enabled = 1;
+					// 			switch_btn->enable_event(menu, switch_btn);
+					// 			secondary_color[0] = switch_btn->enabled_color;
+					// 		}
+					// 	}
+							
+					// 	color[0] = switch_btn->color;
+					// }
+
+
+					drawtile((long)color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, switch_btn->x_size, switch_btn->y_size, -1);
+					drawtile((long)secondary_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, switch_btn->x_size, switch_btn->y_size, -1);
+					// later for label
+					// int textlen = strlen(switch_btn->text);
+					// draw_text(switchBtnXpos+switch_btn->x_size/2-textlen*3, switchBtnYpos+switch_btn->y_size/2-4, 0x0, switch_btn->text);
+
+					draw_square(switchBtnXpos, switchBtnYpos, switchBtnXpos+switch_btn->x_size, switchBtnYpos+switch_btn->y_size, 0x0);
+
+					if (switch_btn->x_pos >= 0)
+						largestX = MAX(largestX, switch_btn->x_size+switch_btn->x_pos);
+
+					if (switch_btn->y_pos >= 0)
+						largestY = MAX(largestY, switch_btn->y_size+2+switchBtnYpos-menu->y_pos);
+					break;
+					//todo
 			}
 		}
 

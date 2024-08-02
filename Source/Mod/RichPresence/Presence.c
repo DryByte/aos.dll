@@ -8,6 +8,7 @@
 
 #include <Presence.h>
 #include <Config.h>
+#include <Menu.h>
 
 #define MAX_RESPONSE 65535
 
@@ -21,6 +22,8 @@ presence_button serverlist_button = {
 };
 
 const char* app_id = "699358451494682714";
+
+int first_run = 1;
 
 int player_id = 0;
 int reset_timer_on_map_change = 1;
@@ -360,20 +363,54 @@ void update_presence() {
     Discord_UpdatePresence(&presence);
 }
 
+void create_rich_presence_menu() {
+    struct Menu* rpc_menu = create_menu(300, 400, 0, "Rich presence");
+    rpc_menu->x_size = 100;
+    rpc_menu->y_size = 50;
+
+    struct ItemSwitchButton* rpc_switch = create_switch_button(rpc_menu, 
+                                                               "Presence", 
+                                                               enable_rich_presence, 
+                                                               disable_rich_presence, 
+                                                               presence_enabled);
+    
+    rpc_switch->x_pos = 10;
+	rpc_switch->y_pos = 10;
+}
+
 void init_rich_presence() {
     presence_config = config_get_section("richpresence");
     presence_enabled = config_get_bool_entry(presence_config, "enabled", 1);
+    show_join_button = config_get_bool_entry(presence_config, "show_join_button", 1);
+    reset_timer_on_map_change = config_get_bool_entry(presence_config, "reset_timer_on_map_change", 1);
+    if (first_run) {create_rich_presence_menu(); first_run = 0;}
     if (!presence_enabled) { return; }
 
     discord_init();
-    show_join_button = config_get_bool_entry(presence_config, "show_join_button", 1);
+    
     // intentional 2 calls, it works only this way on map loading stage idk why (again on WINDOWS)
     get_server_info(0, -1);
     get_server_info(0, -1);
     update_presence();
 
-    reset_timer_on_map_change = config_get_bool_entry(presence_config, "reset_timer_on_map_change", 1);
     state.playtime_start = time(0);
 
     save_config();
+}
+
+void enable_rich_presence() {
+    presence_config = config_get_section("richpresence");
+    config_set_bool_entry(presence_config, "enabled", 1);
+    save_config();
+
+    init_rich_presence();
+}
+
+void disable_rich_presence() {
+    presence_config = config_get_section("richpresence");
+    config_set_bool_entry(presence_config, "enabled", 0);
+    save_config();
+
+    Discord_ClearPresence();
+    Discord_Shutdown();
 }
