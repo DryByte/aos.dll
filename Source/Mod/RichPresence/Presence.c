@@ -364,18 +364,34 @@ void update_presence() {
 }
 
 void create_rich_presence_menu() {
-    struct Menu* rpc_menu = create_menu(300, 400, 0, "Rich presence");
-    rpc_menu->x_size = 100;
-    rpc_menu->y_size = 50;
+    struct Menu* rpc_menu = create_menu(200, 400, 0, "Rich presence");
+    rpc_menu->x_size = 250;
+    rpc_menu->y_size = 75;
 
     struct ItemSwitchButton* rpc_switch = create_switch_button(rpc_menu, 
-                                                               "Presence", 
-                                                               enable_rich_presence, 
-                                                               disable_rich_presence, 
-                                                               presence_enabled);
+                                                               "Enabled", 
+                                                               "enabled",
+                                                               switch_rich_presence,
+                                                               &presence_enabled);
+    struct ItemSwitchButton* join_btn_switch = create_switch_button(rpc_menu, 
+                                                               "Show join btn", 
+                                                               "show_join_button",
+                                                               switch_btn,
+                                                               &show_join_button);
+    struct ItemSwitchButton* reset_timer_on_new_map_switch = create_switch_button(rpc_menu, 
+                                                               "Reset timer on new map?", 
+                                                               "reset_timer_on_map_change",
+                                                               switch_btn,
+                                                               &reset_timer_on_map_change);
     
-    rpc_switch->x_pos = 10;
-	rpc_switch->y_pos = 10;
+    rpc_switch->x_pos = 200;
+	rpc_switch->y_pos = 5;
+    join_btn_switch->x_pos = 200;
+    join_btn_switch->y_pos = 15;
+    reset_timer_on_new_map_switch->x_pos = 200;
+    reset_timer_on_new_map_switch->y_pos = 25;
+
+    // TODO: hints maybe?
 }
 
 void init_rich_presence() {
@@ -398,19 +414,40 @@ void init_rich_presence() {
     save_config();
 }
 
-void enable_rich_presence() {
-    presence_config = config_get_section("richpresence");
-    config_set_bool_entry(presence_config, "enabled", 1);
-    save_config();
+void switch_rich_presence(struct Menu* menu, struct ItemSwitchButton* btn) {
+    if(*(btn->enabled)) {
+        *(btn->enabled) = 0;
 
-    init_rich_presence();
+        presence_config = config_get_section("richpresence");
+        config_set_bool_entry(presence_config, btn->config_entry, *(btn->enabled));
+        save_config();
+
+        Discord_ClearPresence();
+        Discord_Shutdown();
+    }
+    else {
+        *(btn->enabled) = 1;
+        
+        presence_config = config_get_section("richpresence");
+        config_set_bool_entry(presence_config, btn->config_entry, *(btn->enabled));
+        save_config();
+
+        init_rich_presence();
+    }
+
+    
 }
 
-void disable_rich_presence() {
-    presence_config = config_get_section("richpresence");
-    config_set_bool_entry(presence_config, "enabled", 0);
-    save_config();
+void switch_btn(struct Menu* menu, struct ItemSwitchButton* btn) {
+    if(*(btn->enabled)) {
+        *(btn->enabled) = 0;
+    }
+    else {
+        *(btn->enabled) = 1;
+    }
 
-    Discord_ClearPresence();
-    Discord_Shutdown();
+    presence_config = config_get_section("richpresence");
+    config_set_bool_entry(presence_config, btn->config_entry, *(btn->enabled));
+
+    save_config();
 }

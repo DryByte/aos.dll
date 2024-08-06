@@ -194,7 +194,7 @@ struct ItemSlide* create_slide(struct Menu* menu, int min_value, int max_value, 
 	return slide;
 }
 
-struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, void (*enable_func)(), void (*disable_func)(), int enabled) {
+struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, char* config_entry, void (*func)(), int* enabled) {
 	int id = get_next_available_item_id(menu);
 
 	struct ItemSwitchButton* btn = calloc(sizeof(struct ItemSwitchButton) + 32, 1);
@@ -212,9 +212,9 @@ struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, vo
 	btn->y_pos = 0;
 	btn->interval = 0;
 	btn->last_interaction = 0;
-	btn->enable_event = enable_func;
-	btn->disable_event = disable_func;
+	btn->switch_event = func;
 	strncpy(btn->label, label, 32);
+	strncpy(btn->config_entry, config_entry, 32);
 
 	menu->items[id] = btn;
 	menus[menu->id] = menu;
@@ -833,8 +833,8 @@ void draw_menus() {
 					if (menu->minimized)
 						break;
 
-					int switchBtnXpos = menu->x_pos+switch_btn->x_pos;
-					int switchBtnYpos = menu->y_pos;
+					int switchBtnXpos = menu->x_pos + switch_btn->x_pos;
+					int switchBtnYpos = menu->y_pos + switch_btn->y_pos;
 
 					if (switch_btn->x_pos < 0) {
 						switchBtnXpos += menu->x_size;
@@ -854,20 +854,13 @@ void draw_menus() {
 					{
 						secondary_color[0] = switch_btn->hold_color;
 						if (!switch_btn->is_holding) {
-							if (switch_btn->enabled) {
-								switch_btn->disable_event(menu, switch_btn);
-								switch_btn->enabled = 0;
-							}
-							else {
-								switch_btn->enable_event(menu, switch_btn);
-								switch_btn->enabled = 1;
-							}
+							switch_btn->switch_event(menu, switch_btn);
 							switch_btn->is_holding = 1;
 						}
 					}
 					else {
 						switch_btn->is_holding = 0;
-						if (switch_btn->enabled) {
+						if (*(switch_btn->enabled)) {
 							secondary_color[0] = switch_btn->enabled_color;
 						}
 						else {
@@ -876,13 +869,14 @@ void draw_menus() {
 					}
 
 					drawtile((long)color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, switch_btn->x_size, switch_btn->y_size, -1);
-					if (switch_btn->enabled) 
+					if (*(switch_btn->enabled)) 
 						drawtile((long)secondary_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos + (switch_btn->x_size)/2, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
 					else 
 						drawtile((long)secondary_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
-					// later for label
-					// int textlen = strlen(switch_btn->text);
-					// draw_text(switchBtnXpos+switch_btn->x_size/2-textlen*3, switchBtnYpos+switch_btn->y_size/2-4, 0x0, switch_btn->text);
+					
+					// label
+					int textlength = strlen(switch_btn->label);
+					draw_text(switchBtnXpos - textlength*7, switchBtnYpos, 0xFFFFFF, switch_btn->label);
 
 					draw_square(switchBtnXpos, switchBtnYpos, switchBtnXpos+switch_btn->x_size, switchBtnYpos+switch_btn->y_size, 0x0);
 

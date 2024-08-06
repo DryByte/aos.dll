@@ -66,18 +66,18 @@ struct ItemSwitchButton
 	uint8_t type;
 	int id;
 	int is_holding;
-	int enabled;
+	int* enabled;
 	long enabled_color;
 	long hold_color;
 	long disabled_color;
 	long color;
-	char label[32];
 	int x_size, y_size;
 	int x_pos, y_pos;
 	int interval;
 	time_t last_interaction;
-	void (*enable_event)();
-	void (*disable_event)();
+	char label[32];
+	char config_entry[32];
+	void (*switch_event)();
 };
 
 struct ItemTextInput
@@ -133,7 +133,7 @@ struct ItemMultitext* create_multitext(struct Menu* menu, int color);
 struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* text, void (*func)());
 struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, long backgroundColor, char* placeholder);
 struct ItemSlide* create_slide(struct Menu* menu, int minValue, int maxValue, int* interact);
-struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, void (*enable_func)(), void (*disable_func)(), int enabled);
+struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, char* config_entry, void (*switch_func)(), int* enabled);
 void handle_keyboard();
 struct Menu* create_menu(int x, int y, int outline, char* title);
 void draw_menus();
