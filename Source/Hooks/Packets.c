@@ -60,11 +60,18 @@ void send_client_info() {
 	struct packet_client_info* packetV = malloc(sizeof(struct packet_client_info));
 	packetV->packet_id = 34;
 	packetV->identifier = 68;
-	packetV->version_major = 1;
+	packetV->version_major = 0;
 	packetV->version_minor = 1;
-	packetV->version_revision = 1;
+	packetV->version_revision = 0;
 
-	char *a = "just testing";
+	HMODULE ntdll = GetModuleHandle("ntdll.dll");
+
+	char *a = "Windows";
+	if (ntdll) {
+		if (GetProcAddress(ntdll, "wine_get_version"))
+			a = "Linux"; // fuck you macos users muahahah
+	}
+
 	strncpy(packetV->os, a, strlen(a));
 
 	send_packet(packetV, sizeof(packetV)+strlen(a)+1);
