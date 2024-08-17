@@ -4,3 +4,6 @@
 [submodule "Extern/wine-discord-rpc"]
 	path = Extern/wine-discord-rpc
 	url = https://github.com/DryByte/wine-discord-rpc
+[submodule "Extern/freetype"]
+	path = Extern/freetype
+	url = https://gitlab.freedesktop.org/freetype/freetype.git

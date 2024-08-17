@@ -5,9 +5,13 @@
 #include <Voxlap.h>
 #include <AosConfig.h>
 #include <math.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #define MAX(x,y) (x>y) ? x : y
 #define MIN(x,y) (x<y) ? x : y
+
+FT_Library flibrary;
 
 struct Menu* menus[MAX_MENU_ENTRIES];
 
@@ -425,6 +429,43 @@ void draw_line(struct Menu* menu, int x1, int y1, int x2, int y2) {
 	free(tempbuf);
 }
 
+void draw_text_2(struct Menu* menu, int x, int y, int width, int color, char* font, char* text) {
+	FT_Face face;
+	int err = FT_New_Face(library, font, 0, &face);
+
+	if ( err == FT_Err_Unknown_File_Format ) {
+		printf("cant open file\n");
+		return;
+	} else if ( err ) {
+		printf("other erro opening file\n");
+		return;
+	}
+
+	int leng = strlen(text);
+
+	int posX = x;
+	int posY = y+width;
+	for (int i = 0; i < leng; i++) {
+		FT_Set_Pixel_Sizes(face, width, 0);
+		FT_Load_Glyph(face, FT_Get_Char_Index( face, text[i] ), FT_LOAD_DEFAULT);
+		FT_Render_Glyph( face->glyph, FT_RENDER_MODE_NORMAL );
+
+		int* temp_buff = calloc(face->glyph->bitmap.width*face->glyph->bitmap.rows, 4);
+
+		for (int x = 0; x < face->glyph->bitmap.width; x++) {
+			for (int y = 0; y<face->glyph->bitmap.rows; y++) {
+				if(*(face->glyph->bitmap.buffer+x+(face->glyph->bitmap.width*y)))
+					*(temp_buff+x+(face->glyph->bitmap.width*y)) = color;
+			}
+		}
+
+		draw_to_buffer(menu, temp_buff, 0+posX, posY-face->glyph->bitmap_top, face->glyph->bitmap.width, face->glyph->bitmap.rows);
+		free(temp_buff);
+		posX += face->glyph->advance.x>>6;
+		posY += face->glyph->advance.y >> 6;
+	}
+}
+
 int fsrun = 1;
 void draw_menus() {
 	int menusLen = get_next_available_menu_id();
@@ -445,10 +486,17 @@ void draw_menus() {
 		if (menu_id == 1) {
 
 			if (fsrun) {
+				if (FT_Init_FreeType( &flibrary )) {
+					printf("Could not init freetype\n");
+					return;
+				}
+
 				fsrun = 0;
+
+				draw_text_2(menu, 0, 0, 32, 0xff0000ff, "./Monocraft.otf", "hello my boi");
 				draw_line(menu, 10, 5, 25, 30);
 			}
-			drawtile((long)menu->buffer, menu->buffer_x, menu->buffer_x, menu->buffer_y, 0, 0, 30, 30, 5, 5, -1);
+			drawtile((long)menu->buffer, menu->buffer_x, menu->buffer_x, menu->buffer_y, 0, 0, 30, 30, 1, 1, -1);
 		}
 
 		int largestX = MAX(menu->x_size, (int)strlen(menu->title)*8);
