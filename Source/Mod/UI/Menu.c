@@ -431,7 +431,7 @@ void draw_line(struct Menu* menu, int x1, int y1, int x2, int y2) {
 
 void draw_text_2(struct Menu* menu, int x, int y, int width, int color, char* font, char* text) {
 	FT_Face face;
-	int err = FT_New_Face(library, font, 0, &face);
+	int err = FT_New_Face(flibrary, font, 0, &face);
 
 	if ( err == FT_Err_Unknown_File_Format ) {
 		printf("cant open file\n");
