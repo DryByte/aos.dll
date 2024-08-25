@@ -17,7 +17,7 @@ enum CustomMessageTypes
 };
 
 int get_custom_font_size(int fontid, char* msg);
-void draw_text(int x, int y, int color, char* msg);
+void voxlap_draw_text(int x, int y, int color, char* msg);
 void draw_custom_font_text(int x, int y, int color, int fontid, char *msg);
 void draw_progress_bar(float progress, int progress_color, int background_color);
 void add_custom_message(int type, char* msg);

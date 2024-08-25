@@ -51,8 +51,19 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	create_hook(client_base, 0x2bb10, spectator_movement_hook, 11);
 
 	struct Menu* LoggerMenu = create_menu(300, 200, 0, "Logger");
-	LoggerMultitext = create_multitext(LoggerMenu, 0xffffff);
+	LoggerMultitext = create_multitext(LoggerMenu, 0xffffffff);
 
+	struct Menu* demomenu = create_menu(500, 300, 0, "demo");
+	struct ItemText* txt = create_text(demomenu, 8, 0xffff0000, "ok isso é um teste");
+	txt->x_pos = 15;
+	txt->y_pos = 15;
+	int testint = 3;
+	struct ItemSlide* slide = create_slide(demomenu, 0, 15, &testint);
+	slide->show_status = 1;
+	slide->x_pos = 15;
+	slide->y_pos = 30;
+
+	init_menu();
 	init_config();
 	init_macro();
 	init_mod_loader();

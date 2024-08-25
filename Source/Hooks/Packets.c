@@ -129,11 +129,11 @@ int packet_handler() {
 				memcpy(buf, PacketBuffer->data, PacketBuffer->dataLength*sizeof(uint8_t));
 				struct packet_chat* p = (struct packet_chat*)buf;
 
-				printf("%i\n", p->chat_type);
-
 				add_new_text(LoggerMultitext, p->msg);
 				if (p->chat_type > 2)
 					add_custom_message(p->chat_type, p->msg);
+
+				free(buf);
 			}
 			break;
 		case 20:

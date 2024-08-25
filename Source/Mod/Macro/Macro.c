@@ -213,10 +213,15 @@ void btn_edit_handler(struct Menu* menu, struct ItemClickableButton* btn) {
 	key->input[0] = entry->key;
 	strcpy(name->input, entry->macro_name);
 	strcpy(message->input, entry->msg);
+
+	edit_menu->update = 1;
 }
 
 // this should be a function in menu.c for deleting multitext nodes
 void btn_del_handler(struct Menu* menu, struct ItemClickableButton* btn) {
+	if (!macro_list->selected)
+		return;
+
 	int id = get_id_by_key(macro_list->selected->text[0]);
 	if (id < 0)
 		return;
@@ -277,31 +282,31 @@ void create_edit_macro_menu() {
 	edit_menu->y_size = 100;
 	edit_menu->always_hidden = 1;
 
-	struct ItemText* key_text = create_text(edit_menu, -1, 0xffffff, "Key:");
+	struct ItemText* key_text = create_text(edit_menu, 8, 0xffffffff, "Key:");
 	key_text->x_pos = 5;
 	key_text->y_pos = 15;
 
-	struct ItemTextInput* key_input = create_text_input(edit_menu, 12, 10, 0xffffff, "");
+	struct ItemTextInput* key_input = create_text_input(edit_menu, 12, 10, 0xffffffff, "");
 	key_input->background_color = 0xffaaaaaa;
 	key_input->x_pos = 60;
 	key_input->y_pos = 14;
 	key_input->max_length = 1;
 
-	struct ItemText* name_text = create_text(edit_menu, -1, 0xffffff, "Name:");
+	struct ItemText* name_text = create_text(edit_menu, 8, 0xffffffff, "Name:");
 	name_text->x_pos = 5;
 	name_text->y_pos = 28;
 
-	struct ItemTextInput* name_input = create_text_input(edit_menu, 100, 10, 0xffffff, "Macro name");
+	struct ItemTextInput* name_input = create_text_input(edit_menu, 100, 10, 0xffffffff, "Macro name");
 	name_input->background_color = 0xffaaaaaa;
 	name_input->x_pos = 60;
 	name_input->y_pos = 27;
 	name_input->max_length = 32;
 
-	struct ItemText* msg_text = create_text(edit_menu, -1, 0xffffff, "Message:");
+	struct ItemText* msg_text = create_text(edit_menu, 8, 0xffffffff, "Message:");
 	msg_text->x_pos = 5;
 	msg_text->y_pos = 41;
 
-	struct ItemTextInput* msg_input = create_text_input(edit_menu, 100, 10, 0xffffff, "My cool message");
+	struct ItemTextInput* msg_input = create_text_input(edit_menu, 100, 10, 0xffffffff, "My cool message");
 	msg_input->background_color = 0xffaaaaaa;
 	msg_input->x_pos = 60;
 	msg_input->y_pos = 40;
@@ -327,7 +332,7 @@ void create_macro_menu() {
 	macromenu->x_size = 100;
 	macromenu->y_size = 150;
 
-	macro_list = create_multitext(macromenu, 0xffffff);
+	macro_list = create_multitext(macromenu, 0xffffffff);
 	macro_list->y_size = 150;
 
 	struct ItemClickableButton* btn_new = create_clickable_button(macromenu, "NEW", &btn_new_handler);
