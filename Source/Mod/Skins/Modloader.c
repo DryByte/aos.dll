@@ -226,7 +226,7 @@ void create_modloader_menu() {
 	skin_menu->x_size = 100;
 	skin_menu->y_size = 150;
 
-	mt = create_multitext(skin_menu, 0xffffff);
+	mt = create_multitext(skin_menu, 0xffffffff);
 	mt->x_size = 100;
 	mt->y_size = 100;
 
