@@ -89,8 +89,8 @@ void send_handshake_back(int challenge) {
 }
 
 int packet_handler() {
-	if (PacketBuffer->data[0] != 2)
-		printf("%i\n", PacketBuffer->data[0]);
+	//if (PacketBuffer->data[0] != 2)
+		//printf("%i\n", PacketBuffer->data[0]);
 
 	// if enabled it will jump to the end of the aos packet handler
 	// so we can "override" behaviours
@@ -134,6 +134,16 @@ int packet_handler() {
 					add_custom_message(p->chat_type, p->msg);
 
 				free(buf);
+			}
+			break;
+		case 18:
+			{
+				// server doesn't send us the player left for some reason so client
+				// gets confused and guess what, players dont get connect, so lets do like
+				// all other clients and clean the whole array
+				for (int i = 0; i < 32; i++) {
+					memset((void*)(client_base+0x7cb70+(i*0x3a8)), 0, 0x3a8);
+				}
 			}
 			break;
 		case 20:
