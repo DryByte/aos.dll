@@ -20,6 +20,9 @@ int client_base; // this is hacky, should we just change the original clienthand
 struct ItemMultitext* LoggerMultitext;
 int presence_enabled;
 
+void fds(struct Menu* menu, struct ItemClickableButton* btn) {
+};
+
 DWORD WINAPI LoopFunction(LPVOID lpParam)
 {
 	clientHandle = GetModuleHandle(NULL);
@@ -57,11 +60,39 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 	struct ItemText* txt = create_text(demomenu, 8, 0xffff0000, "ok isso é um teste");
 	txt->x_pos = 15;
 	txt->y_pos = 15;
-	int testint = 3;
-	struct ItemSlide* slide = create_slide(demomenu, 0, 15, &testint);
+
+	struct ItemSlide* slide = create_slide(demomenu, 0, 500, &demomenu->offset_y);
 	slide->show_status = 1;
 	slide->x_pos = 15;
 	slide->y_pos = 30;
+
+	struct ItemText* txt2 = create_text(demomenu, 8, 0xffff0000, "2");
+	txt2->x_pos = 15;
+	txt2->y_pos = 30;
+
+	struct ItemText* txt3 = create_text(demomenu, 8, 0xffff0000, "3");
+	txt3->x_pos = 15;
+	txt3->y_pos = 45;
+
+	struct ItemText* txt4 = create_text(demomenu, 8, 0xffff0000, "4");
+	txt4->x_pos = 15;
+	txt4->y_pos = 50;
+
+	struct ItemText* txt5 = create_text(demomenu, 8, 0xffff0000, "5");
+	txt5->x_pos = 15;
+	txt5->y_pos = 65;
+
+	struct ItemClickableButton* btn = create_clickable_button(demomenu, "COOL", &fds);
+	btn->x_pos = 15;
+	btn->y_pos = 80;
+
+	struct ItemTextInput* inn = create_text_input(demomenu, 20, 10, 0xff0000ff, "escreve");
+	inn->x_pos = 15;
+	inn->y_pos = 100;
+
+	struct ItemText* txt6 = create_text(demomenu, 15, 0xffff0000, "6");
+	txt6->x_pos = 15;
+	txt6->y_pos = 130;
 
 	init_menu();
 	init_config();

@@ -107,7 +107,13 @@ struct Menu {
 	int is_interacting;
 	int buffer_x;
 	int buffer_y;
-	int* buffer;
+	int display_x;
+	int display_y;
+	int max_y;
+	int offset_x;
+	int offset_y;
+	int* draw_buffer;
+	int* display_buffer;
 	char title[32];
 	void* items[MAX_MENU_ITEMS];
 };

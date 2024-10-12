@@ -233,9 +233,17 @@ struct Menu* create_menu(int x, int y, int outline, char* title) {
 	menu->update = 1;
 	menu->is_interacting = 0;
 
-	menu->buffer_x = menu->x_size; // use this to detect size changes for realloc
+	menu->buffer_x = menu->x_size;
 	menu->buffer_y = menu->y_size;
-	menu->buffer = calloc(menu->x_size*menu->y_size, 4);
+	menu->draw_buffer = calloc(menu->buffer_x*menu->buffer_y, 4); // we gonna draw the menu here
+
+	menu->display_x = menu->x_size; // use this to detect size changes for realloc
+	menu->display_y = menu->y_size;
+	menu->display_buffer = calloc(menu->display_x*menu->display_y, 4); // and here we display the menu
+
+	menu->max_y = menu->y_size;
+	menu->offset_x = 0;
+	menu->offset_y = 0;
 
 	strncpy(menu->title, title, 32);
 
@@ -384,11 +392,12 @@ int its_new_line_time(int position, int currentLinePos, int maxLine, char* buffe
 }
 
 void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_y, int size_x, int size_y) {
-	if (menu->x_size != menu->buffer_x || menu->y_size != menu->buffer_y) {
-		free(menu->buffer);
+	if (menu->x_size != menu->buffer_x || menu->y_size > menu->buffer_y || offset_y+size_y > menu->buffer_y) {
+		//free(menu->draw_buffer);
 		menu->buffer_x = menu->x_size;
-		menu->buffer_y = menu->y_size;
-		menu->buffer = calloc(menu->buffer_x*menu->buffer_y, 4);
+		menu->buffer_y = MAX(offset_y+size_y, menu->buffer_y);
+		menu->buffer_y = MAX(menu->y_size, menu->buffer_y);
+		menu->draw_buffer = realloc(menu->draw_buffer, menu->buffer_x*menu->buffer_y*4);
 	}
 
 	int true_max_size_x = MIN(size_x+offset_x, menu->buffer_x);
@@ -400,8 +409,7 @@ void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_
 				continue;
 
 			int target_color = *(copy_buff+(x-offset_x+(y-offset_y)*size_x));
-			printf("");
-			int source_color = *((menu->buffer)+(x+(y*menu->buffer_x)));
+			int source_color = *((menu->draw_buffer)+(x+(y*menu->buffer_x)));
 
 			if ((target_color >> 24&255) == 0x0)
 				continue;
@@ -410,7 +418,7 @@ void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_
 				target_color = target_color+source_color;
 			}
 
-			*((menu->buffer)+(x+(y*menu->buffer_x))) = target_color;
+			*((menu->draw_buffer)+(x+(y*menu->buffer_x))) = target_color;
 		}
 	}
 }
@@ -504,7 +512,11 @@ void draw_outlines(struct Menu* menu, int color, int x1, int y1, int x2, int y2)
 }
 
 void clean_draw_buffer(struct Menu* menu) {
-	memset(menu->buffer, 0, menu->buffer_x*menu->buffer_y*4);
+	memset(menu->draw_buffer, 0, menu->buffer_x*menu->buffer_y*4);
+}
+
+void clean_display_buffer(struct Menu* menu) {
+	memset(menu->display_buffer, 0, menu->display_x*menu->display_y*4);
 }
 
 void draw_menu(struct Menu* menu, int interaction) {
@@ -534,7 +546,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 
 	if (!menu->minimized) {
 		// content background
-		draw_rectangle(menu, 0xc0000000, 0, 8, menu->x_size, menu->y_size);
+		draw_rectangle(menu, 0xc0000000, 0, 8, menu->x_size, menu->max_y);
 	}
 
 	printf("foudase? %i\n", itemsLen);
@@ -580,6 +592,8 @@ void draw_menu(struct Menu* menu, int interaction) {
 				}
 
 				draw_text(menu, txtItem->x_pos, txtItem->y_pos, txtItem->font_size, txtItem->color, "Monocraft.otf", txtItem->text);
+
+				menu->max_y = MAX(txtItem->y_pos+txtItem->font_size, menu->max_y);
 				/*if (txtItem->x_pos >= 0)
 					largestX = MAX(largestX, txtSizeX+txtItem->x_pos);
 				if(txtItem->y_pos >= 0)
@@ -605,9 +619,9 @@ void draw_menu(struct Menu* menu, int interaction) {
 				}
 
 				int btn_color = click_btn->color;
-				if (interaction && check_cursor_over(menu->x_pos+clickBtnXpos, menu->y_pos+clickBtnYpos,
+				if (interaction && check_cursor_over(menu->x_pos+clickBtnXpos, menu->y_pos+clickBtnYpos-menu->offset_y,
 												   menu->x_pos+clickBtnXpos+click_btn->x_size,
-												   menu->y_pos+clickBtnYpos+click_btn->y_size))
+												   menu->y_pos+clickBtnYpos+click_btn->y_size-menu->offset_y))
 				{
 					int interval = 0;
 
@@ -647,8 +661,10 @@ void draw_menu(struct Menu* menu, int interaction) {
 				if (click_btn->x_pos >= 0)
 					largestX = MAX(largestX, click_btn->x_size+click_btn->x_pos);
 
-				if (click_btn->y_pos >= 0)
+				if (click_btn->y_pos >= 0) {
+					menu->max_y = MAX(clickBtnYpos+click_btn->y_size, menu->max_y);
 					largestY = MAX(largestY, click_btn->y_size+2+clickBtnYpos-menu->y_pos);
+				}
 				break;
 			case MULTITEXT_ITEM:
 				struct ItemMultitext* multitext = (struct ItemMultitext*)item;
@@ -798,9 +814,9 @@ void draw_menu(struct Menu* menu, int interaction) {
 					int displayLen = input->x_size/6;
 					char textDisplay[displayLen];
 
-					if (interaction && check_cursor_over(menu->x_pos+inpXPos, menu->y_pos+inpYPos,
+					if (interaction && check_cursor_over(menu->x_pos+inpXPos, menu->y_pos+inpYPos-menu->offset_y,
 													   menu->x_pos+inpXPos+input->x_size,
-													   menu->y_pos+inpYPos+input->y_size))
+													   menu->y_pos+inpYPos+input->y_size-menu->offset_y))
 					{
 						activeInputItem = input;
 					}
@@ -828,8 +844,10 @@ void draw_menu(struct Menu* menu, int interaction) {
 
 					if (input->x_pos >= 0)
 						largestX = MAX(largestX, input->x_pos+input->x_size);
-					if (input->y_pos >= 0)
+					if (input->y_pos >= 0) {
+						menu->max_y = MAX(inpYPos+input->y_size, menu->max_y);
 						largestY = MAX(largestY, input->y_size+2+inpYPos-menu->y_pos);
+					}
 				}
 				break;
 			case SLIDE_ITEM:
@@ -848,7 +866,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 				int slideToX = 0;
 				int slideToY = 0;
 				int _fds = 0;
-				if (interaction && check_cursor_over(menu->x_pos+slideXPos, menu->y_pos+slideYPos, menu->x_pos+slideXPos+slide->x_size, menu->y_pos+slideYPos+slide->y_size)) {
+				if (interaction && check_cursor_over(menu->x_pos+slideXPos, menu->y_pos+slideYPos-menu->offset_y, menu->x_pos+slideXPos+slide->x_size, menu->y_pos+slideYPos+slide->y_size-menu->offset_y)) {
 					int porc = 1;
 					int value = 0;
 					if (slide->x_size >= slide->y_size) {
@@ -898,6 +916,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 				}
 				draw_outlines(menu, 0xff000000, slideXPos, slideYPos, slideXPos+slide->x_size, slideYPos+slide->y_size);
 
+				menu->max_y = MAX(slideYPos+slide->y_size, menu->max_y);
 				break;
 		}
 	}
@@ -933,28 +952,60 @@ void draw_menu(struct Menu* menu, int interaction) {
 	}
 }
 
+void draw_to_display(struct Menu* menu) {
+	if (menu->x_size != menu->display_x || menu->y_size != menu->display_y) {
+		free(menu->display_buffer);
+		menu->display_x = menu->x_size;
+		menu->display_y = menu->y_size;
+		menu->display_buffer = calloc(menu->display_x*menu->display_y, 4);
+	}
+
+	clean_display_buffer(menu);
+
+	for (int x = 0; x < menu->display_x; x++) {
+		for (int y = 0; y < menu->display_y; y++) {
+			*((menu->display_buffer)+(x+(y*menu->display_x))) = *((menu->draw_buffer)+(x+(y+menu->offset_y)*menu->buffer_x));
+		}
+	}
+}
+
 int fsrun = 0;
 void draw_menus() {
 	int menusLen = get_next_available_menu_id();
 
 	int interaction = 0;
-	if (show_cursor)
+	int wheel_status = 0;
+	if (show_cursor) {
 		interaction = handle_cursor();
+		wheel_status = handle_wheel();
+	}
 
 	for (int menu_id = 0; menu_id < menusLen; menu_id++) {
 		struct Menu* menu = (struct Menu*)menus[menu_id];
 
-		if (menu->update || ((interaction || handle_wheel()) &&
+		if ((menu->update || ((interaction || wheel_status) &&
 							 check_cursor_over(menu->x_pos, menu->y_pos, menu->x_pos+menu->x_size, menu->y_pos+menu->y_size)
-							) || menu->is_interacting
+							) || menu->is_interacting) && (!menu->hidden || menu->pin)
 			) {
+			if (wheel_status && menu->max_y > menu->y_size) {
+				if (wheel_status > 0) {
+					if (menu->offset_y > 0)
+						menu->offset_y -= 1;
+				} else {
+					if (menu->max_y > menu->offset_y+menu->y_size)
+						menu->offset_y += 1;
+				}
+			}
+
 			menu->is_interacting = interaction;
 			draw_menu(menu, interaction);
+			draw_to_display(menu);
 			menu->update = 0;
 		}
 
-		if (!menu->hidden || menu->pin)
-			drawtile((long)menu->buffer, menu->buffer_x, menu->buffer_x, menu->buffer_y, 0, 0, menu->x_pos, menu->y_pos, 1, 1, -1);
+		if (!menu->hidden || menu->pin){
+			drawtile((long)menu->display_buffer, menu->display_x, menu->display_x, menu->display_y, 0, 0, menu->x_pos, menu->y_pos, 1, 1, -1);
+		}
 	}
 
 	if (show_cursor)
