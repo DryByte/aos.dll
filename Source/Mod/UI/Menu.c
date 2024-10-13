@@ -15,6 +15,8 @@
 FT_Library flibrary;
 FT_Face ftface;
 
+const int TOOLBAR_SIZE = 20;
+
 struct Menu* menus[MAX_MENU_ENTRIES];
 
 int mouse_x_pos = 0;
@@ -541,12 +543,12 @@ void draw_menu(struct Menu* menu, int interaction) {
 	int largestY = menu->y_size;
 
 	// title background
-	draw_rectangle(menu, 0xe0000000, 1, 1, menu->x_size, largestY);
+	draw_rectangle(menu, 0xe0000000, 0, 0, menu->x_size, TOOLBAR_SIZE);
 	draw_text(menu, 0, 0, 16, 0xffffffff, "Monocraft.otf", menu->title);
 
 	if (!menu->minimized) {
 		// content background
-		draw_rectangle(menu, 0xc0000000, 0, 8, menu->x_size, menu->max_y);
+		draw_rectangle(menu, 0xc0000000, 0, TOOLBAR_SIZE, menu->x_size, menu->buffer_y+TOOLBAR_SIZE);
 	}
 
 	printf("foudase? %i\n", itemsLen);
@@ -591,7 +593,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 					ypos += menu->y_size+txtItem->y_pos;
 				}
 
-				draw_text(menu, txtItem->x_pos, txtItem->y_pos, txtItem->font_size, txtItem->color, "Monocraft.otf", txtItem->text);
+				draw_text(menu, txtItem->x_pos, txtItem->y_pos+TOOLBAR_SIZE, txtItem->font_size, txtItem->color, "Monocraft.otf", txtItem->text);
 
 				menu->max_y = MAX(txtItem->y_pos+txtItem->font_size, menu->max_y);
 				/*if (txtItem->x_pos >= 0)
@@ -602,8 +604,8 @@ void draw_menu(struct Menu* menu, int interaction) {
 			case CLICKABLE_BUTTON_ITEM:
 				struct ItemClickableButton* click_btn = (struct ItemClickableButton*)item;
 
-				/*if (menu->minimized && !click_btn->is_toolbar)
-					break;*/
+				if (menu->minimized && !click_btn->is_toolbar)
+					break;
 
 				int clickBtnXpos = click_btn->x_pos;
 				int clickBtnYpos = 0;
@@ -618,10 +620,16 @@ void draw_menu(struct Menu* menu, int interaction) {
 					clickBtnYpos += menu->y_size+click_btn->y_pos;
 				}
 
+				int off_y = menu->offset_y;
+				if (!click_btn->is_toolbar)
+					clickBtnYpos += TOOLBAR_SIZE+4;
+				else
+					off_y = 0;
+
 				int btn_color = click_btn->color;
-				if (interaction && check_cursor_over(menu->x_pos+clickBtnXpos, menu->y_pos+clickBtnYpos-menu->offset_y,
+				if (interaction && check_cursor_over(menu->x_pos+clickBtnXpos, menu->y_pos+clickBtnYpos-off_y,
 												   menu->x_pos+clickBtnXpos+click_btn->x_size,
-												   menu->y_pos+clickBtnYpos+click_btn->y_size-menu->offset_y))
+												   menu->y_pos+clickBtnYpos+click_btn->y_size-off_y))
 				{
 					int interval = 0;
 
@@ -671,7 +679,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 				struct MultitextNode* lastNode = multitext->last_node;
 
 				int mtxPos = multitext->x_pos;
-				int mtyPos = multitext->y_pos+10; // this +10 is bc menu bar
+				int mtyPos = multitext->y_pos+TOOLBAR_SIZE+4;
 
 				if (mtyPos == 0)
 					mtyPos += largestY;
@@ -682,7 +690,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 				if (mtxSize <= 0)
 					mtxSize = menu->x_size;
 				if (mtySize <= 0)
-					mtySize = menu->y_size-10;
+					mtySize = menu->y_size-TOOLBAR_SIZE-4;
 
 				if (check_cursor_over(menu->x_pos+mtxPos, menu->y_pos+mtyPos, menu->x_pos+mtxPos+mtxSize, menu->y_pos+mtyPos+mtySize)) {
 					int wheel_status = handle_wheel();
@@ -809,6 +817,8 @@ void draw_menu(struct Menu* menu, int interaction) {
 						inpYPos += input->y_pos+menu->y_size;
 					}
 
+					inpYPos += TOOLBAR_SIZE+4;
+
 					draw_rectangle(menu, input->background_color, inpXPos, inpYPos, inpXPos+input->x_size, inpYPos+input->y_size);
 
 					int displayLen = input->x_size/6;
@@ -854,7 +864,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 				struct ItemSlide* slide = (struct ItemSlide*)item;
 
 				int slideXPos = slide->x_pos;
-				int slideYPos = slide->y_pos;
+				int slideYPos = slide->y_pos+TOOLBAR_SIZE+4;
 
 				draw_rectangle(menu, slide->background_color, slideXPos, slideYPos, slideXPos+slide->x_size, slideYPos+slide->y_size);
 
@@ -931,7 +941,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 	}
 
 	// separator title | content
-	draw_line(menu, menu->outline_color, menu->x_pos, menu->y_pos+8, menu->x_pos+largestX, menu->y_pos+8);
+	draw_line(menu, menu->outline_color, menu->x_pos, menu->y_pos+TOOLBAR_SIZE, menu->x_pos+largestX, menu->y_pos+TOOLBAR_SIZE);
 
 	if (!menu->minimized)
 		draw_outlines(menu, menu->outline_color, menu->x_pos, menu->y_pos, menu->x_pos+largestX, menu->y_pos+largestY);
@@ -940,7 +950,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 		draggingMenu = 0;
 	}
 
-	if (interaction && check_cursor_over(menu->x_pos, menu->y_pos, menu->x_pos+largestX, menu->y_pos+8)) {
+	if (interaction && check_cursor_over(menu->x_pos, menu->y_pos, menu->x_pos+largestX, menu->y_pos+TOOLBAR_SIZE)) {
 		draggingMenu = menu;
 	}
 
@@ -953,10 +963,10 @@ void draw_menu(struct Menu* menu, int interaction) {
 }
 
 void draw_to_display(struct Menu* menu) {
-	if (menu->x_size != menu->display_x || menu->y_size != menu->display_y) {
+	if (menu->x_size != menu->display_x || menu->y_size+TOOLBAR_SIZE != menu->display_y) {
 		free(menu->display_buffer);
 		menu->display_x = menu->x_size;
-		menu->display_y = menu->y_size;
+		menu->display_y = menu->y_size+TOOLBAR_SIZE;
 		menu->display_buffer = calloc(menu->display_x*menu->display_y, 4);
 	}
 
@@ -965,6 +975,15 @@ void draw_to_display(struct Menu* menu) {
 	for (int x = 0; x < menu->display_x; x++) {
 		for (int y = 0; y < menu->display_y; y++) {
 			*((menu->display_buffer)+(x+(y*menu->display_x))) = *((menu->draw_buffer)+(x+(y+menu->offset_y)*menu->buffer_x));
+		}
+	}
+}
+
+// this function is needed bc we arent going to draw stuff in the draw buffer, but in the display buffer
+void draw_toolbar(struct Menu* menu) {
+	for (int x = 0; x < menu->display_x; x++) {
+		for (int y = 0; y < TOOLBAR_SIZE; y++) {
+			*((menu->display_buffer)+(x+(y*menu->display_x))) = *((menu->draw_buffer)+(x+y*menu->buffer_x));
 		}
 	}
 }
@@ -984,10 +1003,10 @@ void draw_menus() {
 		struct Menu* menu = (struct Menu*)menus[menu_id];
 
 		if ((menu->update || ((interaction || wheel_status) &&
-							 check_cursor_over(menu->x_pos, menu->y_pos, menu->x_pos+menu->x_size, menu->y_pos+menu->y_size)
+							 check_cursor_over(menu->x_pos, menu->y_pos, menu->x_pos+menu->x_size, menu->y_pos+menu->y_size+TOOLBAR_SIZE)
 							) || menu->is_interacting) && (!menu->hidden || menu->pin)
 			) {
-			if (wheel_status && menu->max_y > menu->y_size) {
+			if (wheel_status && menu->max_y > menu->y_size && !menu->minimized) {
 				if (wheel_status > 0) {
 					if (menu->offset_y > 0)
 						menu->offset_y -= 1;
@@ -1004,6 +1023,7 @@ void draw_menus() {
 		}
 
 		if (!menu->hidden || menu->pin){
+			draw_toolbar(menu);
 			drawtile((long)menu->display_buffer, menu->display_x, menu->display_x, menu->display_y, 0, 0, menu->x_pos, menu->y_pos, 1, 1, -1);
 		}
 	}
