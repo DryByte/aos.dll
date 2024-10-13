@@ -47,6 +47,7 @@ DWORD WINAPI LoopFunction(LPVOID lpParam)
 
 	create_hook(client_base, 0x33b12, map_packet_hook, 5);
 	create_hook(client_base, 0x33df1, load_skin_hook, 10); // probably we can change this to a create call later
+	create_hook(client_base, 0x3560a, after_packet_hook, 10);
 	create_hook(client_base, 0x343e4, packet_hook, 7);
 	create_hook(client_base, 0x334a0, rendering_hook_bi, 5);
 	create_hook(client_base, 0x334aa, rendering_hook_ai, 6);

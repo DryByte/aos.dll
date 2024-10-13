@@ -56,6 +56,10 @@ void load_image_files() {
 	asm volatile("call *%0"::"r"(client_base+0x32290));
 }
 
+void update_minimap() {
+	asm volatile("call *%0"::"r"(client_base+0x294b0));
+}
+
 void first_person_spec(int player_id) {
 	int local_struct = (*(int*)(client_base+0x13b1cf0))*0x3a8;
 	int dest_struct = player_id*0x3a8;

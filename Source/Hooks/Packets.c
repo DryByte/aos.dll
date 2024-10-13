@@ -3,6 +3,7 @@
 #include <Rendering.h>
 #include <Menu.h>
 #include <Presence.h>
+#include <Aos.h>
 
 ENetPacket* PacketBuffer;
 ENetPeer* peer;
@@ -184,6 +185,24 @@ __declspec(naked) void map_packet_hook() {
 		"movl 8(%%ebx), %%edx\n\t"
 		"movb (%%edx), %%al\n\t"
 		"jmp *%%ecx"::"r"(PacketBuffer), "r"(client_base+0x33b17));
+}
+
+__declspec(naked) void after_packet_hook() {
+	asm volatile("movl %%edx, %0": "=r" (PacketBuffer->data));
+
+	if (PacketBuffer->data[0] == 13 || PacketBuffer->data[0] == 14)
+		update_minimap();
+
+	asm volatile(
+		"push %2\n\t"
+		"push %0\n\t"
+		"mov (%1), %1\n\t"
+		"call *%1\n\t"
+		"add $0x4,  %%esp\n\t"
+		"pop %%esi\n\t"
+		"jmp *%%esi"
+		::"r"(PacketBuffer->data), "r"(client_base+0x51730), "r"(client_base+0x35614));
+
 }
 
 __declspec(naked) void packet_hook() {
