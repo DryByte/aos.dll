@@ -99,7 +99,7 @@ struct player_struct {
 	int tool_id; // 0x7ce88 - 0x31C
 	int block_color; // 0x7ce8c - 0x320
 	int is_alive; // 0x7ce90 - 0x324
-	int disconnected; // 0x7ce94 - 0x328
+	int connected; // 0x7ce94 - 0x328
 	char _unk_inputs[0xC]; // 0x7ce98 - 0x334
 	int block_count; // 0x7cea4 - 0x338
 	int weapon_ammo; // 0x7cea8 - 0x33C
@@ -127,5 +127,6 @@ void load_player_team_skin(int player_id);
 void load_player_weapon_skin(int player_id);
 void load_player_skins();
 void load_image_files();
+void update_minimap();
 void spectator_movement_hook();
 void handle_spectate_input();

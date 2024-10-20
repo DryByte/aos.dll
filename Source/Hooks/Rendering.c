@@ -14,7 +14,7 @@ void set_max_fps(int fps) {
 	*fps_region = (float)1/fps;
 }
 
-void draw_text(int x, int y, int color, char* msg) {
+void voxlap_draw_text(int x, int y, int color, char* msg) {
 	asm volatile(
 		"push %1\n\t"
 		"push %2\n\t"
@@ -103,7 +103,7 @@ void render_stats() {
 
 	draw_square(1, 1, 10*8, 10, 0xff0000);
 	sprintf(fps, "FPS: %i/%i", current_fps, max_fps);
-	draw_text(2,2, 0xffffff, fps);
+	voxlap_draw_text(2,2, 0xffffff, fps);
 }
 
 void add_custom_message(int type, char *msg) {

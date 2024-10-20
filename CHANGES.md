@@ -8,6 +8,9 @@
 - First person spectator mode (press V)
 - Discord Rich Presence
 - Chat shadow
+- Custom font support (menus)
 
 ## Fixes
 - Allow for block color update without the need of breaking it
+- Update minimap after block actions
+- Wrong player name after map change

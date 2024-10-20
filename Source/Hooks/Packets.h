@@ -72,5 +72,6 @@ struct __attribute__((__packed__)) packet_state_data
 };
 
 void map_packet_hook(void);
+void after_packet_hook(void);
 void packet_hook(void);
 void send_msg(char *msg);

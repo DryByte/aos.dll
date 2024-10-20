@@ -21,9 +21,10 @@ struct ItemText {
 	uint8_t type;
 	int id;
 	int color;
-	int font_id;
+	int font_size;
 	char text[32];
 	int x_pos, y_pos;
+	struct Menu* menu;
 };
 
 struct MultitextNode {
@@ -40,6 +41,7 @@ struct ItemMultitext {
 	int x_pos, y_pos;
 
 	int current_pos;
+	struct Menu* menu;
 	struct MultitextNode* selected;
 	struct MultitextNode* first_node;
 	struct MultitextNode* last_node;
@@ -53,11 +55,13 @@ struct ItemClickableButton
 	long color;
 	long hold_color;
 	char text[32];
+	int font_size;
 	int x_size, y_size;
 	int x_pos, y_pos;
 	int is_toolbar;
 	int interval;
 	time_t last_interaction;
+	struct Menu* menu;
 	void (*event)();
 };
 
@@ -90,6 +94,7 @@ struct ItemTextInput
 	int max_length;
 	int x_size, y_size;
 	int x_pos, y_pos;
+	struct Menu* menu;
 };
 
 struct ItemSlide {
@@ -104,6 +109,7 @@ struct ItemSlide {
 	long slider_color;
 	long background_color;
 	int* interact_int;
+	struct Menu* menu;
 };
 
 struct Menu {
@@ -117,9 +123,17 @@ struct Menu {
 	int outline_color;
 	int background_color;
 	int always_hidden;
+	int update;
+	int is_interacting;
 	int buffer_x;
 	int buffer_y;
-	int* buffer;
+	int display_x;
+	int display_y;
+	int max_y;
+	int offset_x;
+	int offset_y;
+	int* draw_buffer;
+	int* display_buffer;
 	char title[32];
 	void* items[MAX_MENU_ITEMS];
 };
@@ -127,7 +141,7 @@ struct Menu {
 void show_all_menus();
 void hide_all_menus();
 int get_next_available_menu_id();
-struct ItemText* create_text(struct Menu* menu, int fontid, int color, char* text);
+struct ItemText* create_text(struct Menu* menu, int font_size, int color, char* text);
 void add_new_text(struct ItemMultitext* multitext, char* text);
 struct ItemMultitext* create_multitext(struct Menu* menu, int color);
 struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* text, void (*func)());
@@ -136,4 +150,7 @@ struct ItemSlide* create_slide(struct Menu* menu, int minValue, int maxValue, in
 struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, char* config_entry, void (*switch_func)(), int* enabled);
 void handle_keyboard();
 struct Menu* create_menu(int x, int y, int outline, char* title);
+void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_y, int size_x, int size_y);
+void draw_line(struct Menu* menu, int color, int x1, int y1, int x2, int y2);
 void draw_menus();
+void init_menu();

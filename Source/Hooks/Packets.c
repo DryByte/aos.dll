@@ -3,6 +3,7 @@
 #include <Rendering.h>
 #include <Menu.h>
 #include <Presence.h>
+#include <Aos.h>
 
 ENetPacket* PacketBuffer;
 ENetPeer* peer;
@@ -60,11 +61,18 @@ void send_client_info() {
 	struct packet_client_info* packetV = malloc(sizeof(struct packet_client_info));
 	packetV->packet_id = 34;
 	packetV->identifier = 68;
-	packetV->version_major = 1;
+	packetV->version_major = 0;
 	packetV->version_minor = 1;
-	packetV->version_revision = 1;
+	packetV->version_revision = 0;
 
-	char *a = "just testing";
+	HMODULE ntdll = GetModuleHandle("ntdll.dll");
+
+	char *a = "Windows";
+	if (ntdll) {
+		if (GetProcAddress(ntdll, "wine_get_version"))
+			a = "Linux"; // fuck you macos users muahahah
+	}
+
 	strncpy(packetV->os, a, strlen(a));
 
 	send_packet(packetV, sizeof(packetV)+strlen(a)+1);
@@ -82,8 +90,8 @@ void send_handshake_back(int challenge) {
 }
 
 int packet_handler() {
-	if (PacketBuffer->data[0] != 2)
-		printf("%i\n", PacketBuffer->data[0]);
+	//if (PacketBuffer->data[0] != 2)
+		//printf("%i\n", PacketBuffer->data[0]);
 
 	// if enabled it will jump to the end of the aos packet handler
 	// so we can "override" behaviours
@@ -122,11 +130,21 @@ int packet_handler() {
 				memcpy(buf, PacketBuffer->data, PacketBuffer->dataLength*sizeof(uint8_t));
 				struct packet_chat* p = (struct packet_chat*)buf;
 
-				printf("%i\n", p->chat_type);
-
 				add_new_text(LoggerMultitext, p->msg);
 				if (p->chat_type > 2)
 					add_custom_message(p->chat_type, p->msg);
+
+				free(buf);
+			}
+			break;
+		case 18:
+			{
+				// server doesn't send us the player left for some reason so client
+				// gets confused and guess what, players dont get connect, so lets do like
+				// all other clients and clean the whole array
+				for (int i = 0; i < 32; i++) {
+					memset((void*)(client_base+0x7cb70+(i*0x3a8)), 0, 0x3a8);
+				}
 			}
 			break;
 		case 20:
@@ -167,6 +185,24 @@ __declspec(naked) void map_packet_hook() {
 		"movl 8(%%ebx), %%edx\n\t"
 		"movb (%%edx), %%al\n\t"
 		"jmp *%%ecx"::"r"(PacketBuffer), "r"(client_base+0x33b17));
+}
+
+__declspec(naked) void after_packet_hook() {
+	asm volatile("movl %%edx, %0": "=r" (PacketBuffer->data));
+
+	if (PacketBuffer->data[0] == 13 || PacketBuffer->data[0] == 14)
+		update_minimap();
+
+	asm volatile(
+		"push %2\n\t"
+		"push %0\n\t"
+		"mov (%1), %1\n\t"
+		"call *%1\n\t"
+		"add $0x4,  %%esp\n\t"
+		"pop %%esi\n\t"
+		"jmp *%%esi"
+		::"r"(PacketBuffer->data), "r"(client_base+0x51730), "r"(client_base+0x35614));
+
 }
 
 __declspec(naked) void packet_hook() {
