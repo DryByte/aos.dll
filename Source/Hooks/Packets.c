@@ -188,20 +188,18 @@ __declspec(naked) void map_packet_hook() {
 }
 
 __declspec(naked) void after_packet_hook() {
-	asm volatile("movl %%edx, %0": "=r" (PacketBuffer->data));
+	asm volatile("movl %%esi, %0": "=r" (PacketBuffer));
 
 	if (PacketBuffer->data[0] == 13 || PacketBuffer->data[0] == 14)
 		update_minimap();
 
 	asm volatile(
-		"push %2\n\t"
+		"push %1\n\t"
 		"push %0\n\t"
-		"mov (%1), %1\n\t"
-		"call *%1\n\t"
-		"add $0x4,  %%esp\n\t"
 		"pop %%esi\n\t"
-		"jmp *%%esi"
-		::"r"(PacketBuffer->data), "r"(client_base+0x51730), "r"(client_base+0x35614));
+		"pop %%edi\n\t"
+		"jmp *%%edi"
+		::"r"(PacketBuffer), "r"(client_base+0x35614));
 
 }
 
