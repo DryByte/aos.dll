@@ -169,7 +169,7 @@ struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* tex
 	return btn;
 }
 
-struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, long background_color, char* placeholder) {
+struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, int background_color, char* placeholder) {
 	int id = get_next_available_item_id(menu);
 
 	struct ItemTextInput* input = calloc(sizeof(struct ItemTextInput) + 256, 1);
@@ -237,6 +237,7 @@ struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, ch
 	btn->last_interaction = 0;
 	btn->switch_event = func;
 	strncpy(btn->label, label, 32);
+	btn->font_size = 14;
 	strncpy(btn->config_entry, config_entry, 32);
 
 	menu->items[id] = btn;
@@ -389,7 +390,7 @@ int check_cursor_over(int areaX1, int areaY1, int areaX2, int areaY2) {
 
 void draw_cursor() {
 	// todo load mouse cursor image
-	long color[] = {0xffffffff};
+	int color[] = {0xffffffff};
 	drawtile((long)color, 1, 1, 1, 0x0, 0x0, mouse_x_pos, mouse_y_pos, 15, 15, -1);
 }
 
@@ -526,12 +527,6 @@ void draw_rectangle(struct Menu* menu, int color, int x1, int y1, int x2, int y2
 
 	int* temp_buff = malloc(xs*ys*4);
 
-		// title background
-		long color[] = {0xe0000000};
-		long secondary_color[] = {0x00000000};
-		drawtile((long)color, 1, 1, 1, 0x0, 0x0, menu->x_pos, menu->y_pos, menu->x_size, largestY, -1);
-		draw_text(menu->x_pos, menu->y_pos, 0xffffff, menu->title);
-
 	for (int i = 0; i < xs*ys; i++) {
 		*(temp_buff+i) = color;
 	}
@@ -636,6 +631,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 					largestY = MAX(largestY, txtSizeY+8+ypos-menu->y_pos);*/
 				break;
 			case CLICKABLE_BUTTON_ITEM:
+			{
 				struct ItemClickableButton* click_btn = (struct ItemClickableButton*)item;
 
 				if (menu->minimized && !click_btn->is_toolbar)
@@ -708,6 +704,8 @@ void draw_menu(struct Menu* menu, int interaction) {
 					largestY = MAX(largestY, click_btn->y_size+2+clickBtnYpos-menu->y_pos);
 				}
 				break;
+			}
+			
 			case MULTITEXT_ITEM:
 				struct ItemMultitext* multitext = (struct ItemMultitext*)item;
 				struct MultitextNode* lastNode = multitext->last_node;
@@ -949,11 +947,21 @@ void draw_menu(struct Menu* menu, int interaction) {
 					sliderPosY += slide->y_size-sliderSizeY;
 
 					sliderPosX = slideXPos;
-				  }
-        
-					break;
-					//todo
+				}
+				
+				draw_rectangle(menu, slide->slider_color, sliderPosX, sliderPosY, sliderPosX+sliderSizeX, sliderPosY+sliderSizeY);
+				if (slide->show_status) {
+					char cool[10];
+					sprintf(cool, "%i", *slide->interact_int);
+					draw_text(menu, slideXPos, slideYPos+slide->y_size+6, 16, 0xff000000, "Monocraft.otf", cool);
+				}
+				draw_outlines(menu, 0xff000000, slideXPos, slideYPos, slideXPos+slide->x_size, slideYPos+slide->y_size);
+
+				menu->max_y = MAX(slideYPos+slide->y_size, menu->max_y);
+				break;
+
 				case SWITCH_BUTTON_ITEM:
+				{
 					struct ItemSwitchButton* switch_btn = (struct ItemSwitchButton*)item;
 
 					if (menu->minimized)
@@ -972,13 +980,15 @@ void draw_menu(struct Menu* menu, int interaction) {
 						switchBtnYpos += menu->y_size+switch_btn->y_pos;
 					}
 
-					color[0] = switch_btn->color;
+					int btn_color = switch_btn->disabled_color;
+					int secondary_btn_color = switch_btn->color;
+
 
 					if (interaction && check_cursor_over(switchBtnXpos, switchBtnYpos,
 													   switchBtnXpos+switch_btn->x_size,
 													   switchBtnYpos+switch_btn->y_size))
 					{
-						secondary_color[0] = switch_btn->hold_color;
+						secondary_btn_color = switch_btn->hold_color;
 						if (!switch_btn->is_holding) {
 							switch_btn->switch_event(menu, switch_btn);
 							switch_btn->is_holding = 1;
@@ -987,22 +997,22 @@ void draw_menu(struct Menu* menu, int interaction) {
 					else {
 						switch_btn->is_holding = 0;
 						if (*(switch_btn->enabled)) {
-							secondary_color[0] = switch_btn->enabled_color;
+							secondary_btn_color = switch_btn->enabled_color;
 						}
 						else {
-							secondary_color[0] = switch_btn->disabled_color;
+							secondary_btn_color = switch_btn->disabled_color;
 						}
 					}
 
-					drawtile((long)color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, switch_btn->x_size, switch_btn->y_size, -1);
+					drawtile((long)btn_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, switch_btn->x_size, switch_btn->y_size, -1);
 					if (*(switch_btn->enabled)) 
-						drawtile((long)secondary_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos + (switch_btn->x_size)/2, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
+						drawtile((long)secondary_btn_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos + (switch_btn->x_size)/2, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
 					else 
-						drawtile((long)secondary_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
+						drawtile((long)secondary_btn_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
 					
 					// label
 					int textlength = strlen(switch_btn->label);
-					draw_text(switchBtnXpos - textlength*7, switchBtnYpos, 0xFFFFFF, switch_btn->label);
+					draw_text(menu, switchBtnXpos - textlength*7, switchBtnYpos, switch_btn->font_size, 0xFFFFFF, "Monocraft.otf",  switch_btn->label);
 
 					draw_square(switchBtnXpos, switchBtnYpos, switchBtnXpos+switch_btn->x_size, switchBtnYpos+switch_btn->y_size, 0x0);
 
@@ -1012,22 +1022,9 @@ void draw_menu(struct Menu* menu, int interaction) {
 					if (switch_btn->y_pos >= 0)
 						largestY = MAX(largestY, switch_btn->y_size+2+switchBtnYpos-menu->y_pos);
 					break;
-					//todo
+				}
 			}
 		}
-  
-				draw_rectangle(menu, slide->slider_color, sliderPosX, sliderPosY, sliderPosX+sliderSizeX, sliderPosY+sliderSizeY);
-				if (slide->show_status) {
-					char cool[10];
-					sprintf(cool, "%i", *slide->interact_int);
-					draw_text(menu, slideXPos, slideYPos+slide->y_size+6, 16, 0xff000000, "Monocraft.otf", cool);
-				}
-				draw_outlines(menu, 0xff000000, slideXPos, slideYPos, slideXPos+slide->x_size, slideYPos+slide->y_size);
-
-				menu->max_y = MAX(slideYPos+slide->y_size, menu->max_y);
-				break;
-		}
-	}
 
 	largestY = MAX(menu->y_size, largestY);
 	if (menu->fixed_size) {
