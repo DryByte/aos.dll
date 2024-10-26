@@ -8,6 +8,7 @@
 
 #include <Presence.h>
 #include <Config.h>
+#include <Menu.h>
 
 #define MAX_RESPONSE 65535
 
@@ -21,6 +22,8 @@ presence_button serverlist_button = {
 };
 
 const char* app_id = "699358451494682714";
+
+int first_run = 1;
 
 int player_id = 0;
 int reset_timer_on_map_change = 1;
@@ -360,20 +363,91 @@ void update_presence() {
     Discord_UpdatePresence(&presence);
 }
 
+void create_rich_presence_menu() {
+    struct Menu* rpc_menu = create_menu(200, 400, 0, "Rich presence");
+    rpc_menu->x_size = 250;
+    rpc_menu->y_size = 75;
+
+    struct ItemSwitchButton* rpc_switch = create_switch_button(rpc_menu, 
+                                                               "Enabled", 
+                                                               "enabled",
+                                                               switch_rich_presence,
+                                                               &presence_enabled);
+    struct ItemSwitchButton* join_btn_switch = create_switch_button(rpc_menu, 
+                                                               "Show join btn", 
+                                                               "show_join_button",
+                                                               switch_btn,
+                                                               &show_join_button);
+    struct ItemSwitchButton* reset_timer_on_new_map_switch = create_switch_button(rpc_menu, 
+                                                               "Reset timer on new map?", 
+                                                               "reset_timer_on_map_change",
+                                                               switch_btn,
+                                                               &reset_timer_on_map_change);
+    
+    rpc_switch->x_pos = 200;
+	rpc_switch->y_pos = 5;
+    join_btn_switch->x_pos = 200;
+    join_btn_switch->y_pos = 15;
+    reset_timer_on_new_map_switch->x_pos = 200;
+    reset_timer_on_new_map_switch->y_pos = 25;
+
+    // TODO: hints maybe?
+}
+
 void init_rich_presence() {
     presence_config = config_get_section("richpresence");
     presence_enabled = config_get_bool_entry(presence_config, "enabled", 1);
+    show_join_button = config_get_bool_entry(presence_config, "show_join_button", 1);
+    reset_timer_on_map_change = config_get_bool_entry(presence_config, "reset_timer_on_map_change", 1);
+    if (first_run) {create_rich_presence_menu(); first_run = 0;}
     if (!presence_enabled) { return; }
 
     discord_init();
-    show_join_button = config_get_bool_entry(presence_config, "show_join_button", 1);
+    
     // intentional 2 calls, it works only this way on map loading stage idk why (again on WINDOWS)
     get_server_info(0, -1);
     get_server_info(0, -1);
     update_presence();
 
-    reset_timer_on_map_change = config_get_bool_entry(presence_config, "reset_timer_on_map_change", 1);
     state.playtime_start = time(0);
+
+    save_config();
+}
+
+void switch_rich_presence(struct Menu* menu, struct ItemSwitchButton* btn) {
+    if(*(btn->enabled)) {
+        *(btn->enabled) = 0;
+
+        presence_config = config_get_section("richpresence");
+        config_set_bool_entry(presence_config, btn->config_entry, *(btn->enabled));
+        save_config();
+
+        Discord_ClearPresence();
+        Discord_Shutdown();
+    }
+    else {
+        *(btn->enabled) = 1;
+        
+        presence_config = config_get_section("richpresence");
+        config_set_bool_entry(presence_config, btn->config_entry, *(btn->enabled));
+        save_config();
+
+        init_rich_presence();
+    }
+
+    
+}
+
+void switch_btn(struct Menu* menu, struct ItemSwitchButton* btn) {
+    if(*(btn->enabled)) {
+        *(btn->enabled) = 0;
+    }
+    else {
+        *(btn->enabled) = 1;
+    }
+
+    presence_config = config_get_section("richpresence");
+    config_set_bool_entry(presence_config, btn->config_entry, *(btn->enabled));
 
     save_config();
 }
