@@ -4,6 +4,8 @@ extern int presence_enabled;
 extern int client_base;
 
 void init_rich_presence();
+void switch_rich_presence();
+void switch_btn();
 void update_presence();
 
 void trigger_player_count_validation();

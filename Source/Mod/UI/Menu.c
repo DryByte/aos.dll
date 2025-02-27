@@ -169,7 +169,7 @@ struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* tex
 	return btn;
 }
 
-struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, long background_color, char* placeholder) {
+struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, int background_color, char* placeholder) {
 	int id = get_next_available_item_id(menu);
 
 	struct ItemTextInput* input = calloc(sizeof(struct ItemTextInput) + 256, 1);
@@ -215,6 +215,35 @@ struct ItemSlide* create_slide(struct Menu* menu, int min_value, int max_value, 
 	menus[menu->id] = menu;
 
 	return slide;
+}
+
+struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, char* config_entry, void (*func)(), int* enabled) {
+	int id = get_next_available_item_id(menu);
+
+	struct ItemSwitchButton* btn = calloc(sizeof(struct ItemSwitchButton) + 32, 1);
+	btn->type = SWITCH_BUTTON_ITEM;
+	btn->id = id;
+	btn->enabled = enabled;
+	// colors in ARGB!!!
+	btn->enabled_color = 0xff00ff00;
+	btn->disabled_color = 0xffff0000;
+	btn->hold_color = 0xfff1a42e;
+	btn->color = 0xff757575;
+	btn->x_size = 40;
+	btn->y_size = 15;
+	btn->x_pos = 0;
+	btn->y_pos = 0;
+	btn->interval = 0;
+	btn->last_interaction = 0;
+	btn->switch_event = func;
+	strncpy(btn->label, label, 32);
+	btn->font_size = 14;
+	strncpy(btn->config_entry, config_entry, 32);
+
+	menu->items[id] = btn;
+	menus[menu->id] = menu;
+
+	return btn;
 }
 
 struct Menu* create_menu(int x, int y, int outline, char* title) {
@@ -361,7 +390,7 @@ int check_cursor_over(int areaX1, int areaY1, int areaX2, int areaY2) {
 
 void draw_cursor() {
 	// todo load mouse cursor image
-	long color[] = {0xffffffff};
+	int color[] = {0xffffffff};
 	drawtile((long)color, 1, 1, 1, 0x0, 0x0, mouse_x_pos, mouse_y_pos, 15, 15, -1);
 }
 
@@ -602,6 +631,7 @@ void draw_menu(struct Menu* menu, int interaction) {
 					largestY = MAX(largestY, txtSizeY+8+ypos-menu->y_pos);*/
 				break;
 			case CLICKABLE_BUTTON_ITEM:
+			{
 				struct ItemClickableButton* click_btn = (struct ItemClickableButton*)item;
 
 				if (menu->minimized && !click_btn->is_toolbar)
@@ -674,6 +704,8 @@ void draw_menu(struct Menu* menu, int interaction) {
 					largestY = MAX(largestY, click_btn->y_size+2+clickBtnYpos-menu->y_pos);
 				}
 				break;
+			}
+			
 			case MULTITEXT_ITEM:
 				struct ItemMultitext* multitext = (struct ItemMultitext*)item;
 				struct MultitextNode* lastNode = multitext->last_node;
@@ -916,9 +948,8 @@ void draw_menu(struct Menu* menu, int interaction) {
 
 					sliderPosX = slideXPos;
 				}
-
+				
 				draw_rectangle(menu, slide->slider_color, sliderPosX, sliderPosY, sliderPosX+sliderSizeX, sliderPosY+sliderSizeY);
-
 				if (slide->show_status) {
 					char cool[10];
 					sprintf(cool, "%i", *slide->interact_int);
@@ -928,8 +959,72 @@ void draw_menu(struct Menu* menu, int interaction) {
 
 				menu->max_y = MAX(slideYPos+slide->y_size, menu->max_y);
 				break;
+
+				case SWITCH_BUTTON_ITEM:
+				{
+					struct ItemSwitchButton* switch_btn = (struct ItemSwitchButton*)item;
+
+					if (menu->minimized)
+						break;
+
+					int switchBtnXpos = menu->x_pos + switch_btn->x_pos;
+					int switchBtnYpos = menu->y_pos + switch_btn->y_pos;
+
+					if (switch_btn->x_pos < 0) {
+						switchBtnXpos += menu->x_size;
+					}
+
+					if (switch_btn->y_pos >= 0) {
+						switchBtnYpos += (!switch_btn->y_pos) ? largestY : switch_btn->y_pos;
+					} else {
+						switchBtnYpos += menu->y_size+switch_btn->y_pos;
+					}
+
+					int btn_color = switch_btn->disabled_color;
+					int secondary_btn_color = switch_btn->color;
+
+
+					if (interaction && check_cursor_over(switchBtnXpos, switchBtnYpos,
+													   switchBtnXpos+switch_btn->x_size,
+													   switchBtnYpos+switch_btn->y_size))
+					{
+						secondary_btn_color = switch_btn->hold_color;
+						if (!switch_btn->is_holding) {
+							switch_btn->switch_event(menu, switch_btn);
+							switch_btn->is_holding = 1;
+						}
+					}
+					else {
+						switch_btn->is_holding = 0;
+						if (*(switch_btn->enabled)) {
+							secondary_btn_color = switch_btn->enabled_color;
+						}
+						else {
+							secondary_btn_color = switch_btn->disabled_color;
+						}
+					}
+
+					drawtile((long)btn_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, switch_btn->x_size, switch_btn->y_size, -1);
+					if (*(switch_btn->enabled)) 
+						drawtile((long)secondary_btn_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos + (switch_btn->x_size)/2, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
+					else 
+						drawtile((long)secondary_btn_color, 1, 1, 1, 0x0, 0x0, switchBtnXpos, switchBtnYpos, (switch_btn->x_size)/2, switch_btn->y_size, -1);
+					
+					// label
+					int textlength = strlen(switch_btn->label);
+					draw_text(menu, switchBtnXpos - textlength*7, switchBtnYpos, switch_btn->font_size, 0xFFFFFF, "Monocraft.otf",  switch_btn->label);
+
+					draw_square(switchBtnXpos, switchBtnYpos, switchBtnXpos+switch_btn->x_size, switchBtnYpos+switch_btn->y_size, 0x0);
+
+					if (switch_btn->x_pos >= 0)
+						largestX = MAX(largestX, switch_btn->x_size+switch_btn->x_pos);
+
+					if (switch_btn->y_pos >= 0)
+						largestY = MAX(largestY, switch_btn->y_size+2+switchBtnYpos-menu->y_pos);
+					break;
+				}
+			}
 		}
-	}
 
 	largestY = MAX(menu->y_size, largestY);
 	if (menu->fixed_size) {

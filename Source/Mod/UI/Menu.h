@@ -9,7 +9,8 @@ enum itemTypes {
 	CLICKABLE_BUTTON_ITEM,
 	MULTITEXT_ITEM,
 	TEXTINPUT_ITEM,
-	SLIDE_ITEM
+	SLIDE_ITEM,
+	SWITCH_BUTTON_ITEM
 };
 
 struct Item {
@@ -51,8 +52,8 @@ struct ItemClickableButton
 	uint8_t type;
 	int id;
 	int is_clicking;
-	long color;
-	long hold_color;
+	int color;
+	int hold_color;
 	char text[32];
 	int font_size;
 	int x_size, y_size;
@@ -64,10 +65,30 @@ struct ItemClickableButton
 	void (*event)();
 };
 
+struct ItemSwitchButton
+{
+	uint8_t type;
+	int id;
+	int is_holding;
+	int* enabled;
+	int enabled_color;
+	int hold_color;
+	int disabled_color;
+	int color;
+	int x_size, y_size;
+	int x_pos, y_pos;
+	int interval;
+	time_t last_interaction;
+	char label[32];
+	int font_size;
+	char config_entry[32];
+	void (*switch_event)();
+};
+
 struct ItemTextInput
 {
 	uint8_t type;
-	long background_color;
+	int background_color;
 	int id;
 	char placeholder[128];
 	char input[128];
@@ -86,8 +107,8 @@ struct ItemSlide {
 	int max_value;
 	int min_value;
 	int show_status;
-	long slider_color;
-	long background_color;
+	int slider_color;
+	int background_color;
 	int* interact_int;
 	struct Menu* menu;
 };
@@ -125,8 +146,9 @@ struct ItemText* create_text(struct Menu* menu, int font_size, int color, char* 
 void add_new_text(struct ItemMultitext* multitext, char* text);
 struct ItemMultitext* create_multitext(struct Menu* menu, int color);
 struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* text, void (*func)());
-struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, long backgroundColor, char* placeholder);
+struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, int backgroundColor, char* placeholder);
 struct ItemSlide* create_slide(struct Menu* menu, int minValue, int maxValue, int* interact);
+struct ItemSwitchButton* create_switch_button(struct Menu* menu, char* label, char* config_entry, void (*switch_func)(), int* enabled);
 void handle_keyboard();
 struct Menu* create_menu(int x, int y, int outline, char* title);
 void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_y, int size_x, int size_y);
