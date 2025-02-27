@@ -426,10 +426,10 @@ void draw_to_buffer(struct Menu* menu, int* copy_buff, int offset_x, int offset_
 }
 
 void draw_line(struct Menu* menu, int color, int x1, int y1, int x2, int y2) {
-	int dx = x2-x1;
-	int dy = y2-y1;
+	int dx = MAX(abs(x2-x1), 1);
+	int dy = MAX(abs(y2-y1), 1);
 
-    int* tempbuf = calloc(dx*dy, 4);
+	int* tempbuf = calloc(dx*dy, 4);
 
 	if (x2 >= y2) {
 		int D = 2*dy - dx;
