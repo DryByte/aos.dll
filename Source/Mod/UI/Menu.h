@@ -61,7 +61,7 @@ struct ItemClickableButton
 	int interval;
 	time_t last_interaction;
 	struct Menu* menu;
-	void (*event)();
+	void (*event)(struct Menu *, struct ItemClickableButton *);
 };
 
 struct ItemTextInput
@@ -124,7 +124,7 @@ int get_next_available_menu_id();
 struct ItemText* create_text(struct Menu* menu, int font_size, int color, char* text);
 void add_new_text(struct ItemMultitext* multitext, char* text);
 struct ItemMultitext* create_multitext(struct Menu* menu, int color);
-struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* text, void (*func)());
+struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* text, void (*func)(struct Menu *, struct ItemClickableButton *));
 struct ItemTextInput* create_text_input(struct Menu* menu, int x_size, int y_size, long backgroundColor, char* placeholder);
 struct ItemSlide* create_slide(struct Menu* menu, int minValue, int maxValue, int* interact);
 void handle_keyboard();

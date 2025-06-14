@@ -142,7 +142,7 @@ struct ItemMultitext* create_multitext(struct Menu* menu, int color) {
 	return multitextItem;
 }
 
-struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* text, void (*func)()) {
+struct ItemClickableButton* create_clickable_button(struct Menu* menu, char* text, void (*func)(struct Menu *, struct ItemClickableButton *)) {
 	int id = get_next_available_item_id(menu);
 
 	struct ItemClickableButton* btn = calloc(sizeof(struct ItemClickableButton) + 32, 1);
