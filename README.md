@@ -18,10 +18,6 @@ cmake .. && make
 ```
 After compiling it, copy libaos.dll to your AoS folder and patch the client.exe
 
-### Known issues
-* RapidJson related error in wine-discord-rpc
-Clean your build folder and add the following flags to cmake `-DRAPIDJSONTEST=OFF -DRAPIDJSON=../Extern/wine-discord-rpc/thirdparty/rapidjson-1.1.0`
-
 ### Installing/injecting
 You can use your favorite DLL injector, or use [AoS Patcher](https://github.com/DryByte/AoS-Patcher) for auto inject when game opens up
 
