@@ -1,4 +1,5 @@
 #include <Aos.h>
+#include <stdio.h>
 
 void load_kv6_files() {
 	asm volatile(
@@ -15,22 +16,24 @@ void load_world_objects() {
 	:: "r"(client_base+0x292e0));
 }
 
-void load_player_team_skin(int player_id) {
+__declspec(noinline) void load_player_team_skin(int player_id) {
 	int teamid = *(int*)(client_base+0x7ce58+0x3a8*player_id);
 
 	asm volatile(
+		"mov %1, %%esi\n\t"
 		"mov %0, %%ecx\n\t"
-		"lea (%1), %%eax\n\t"
+		"lea (%%esi), %%eax\n\t"
 		"call *%2"
 	:: "g" (teamid), "r" (client_base+0x7cb70+0x3a8*player_id), "g"(client_base+0x3dc50));
 }
 
-void load_player_weapon_skin(int player_id) {
+__declspec(noinline) void load_player_weapon_skin(int player_id) {
 	int toolid = *(int*)(client_base+0x7ce88+0x3a8*player_id);
 
 	asm volatile(
+		"mov %1, %%esi\n\t"
 		"push %0\n\t"
-		"lea (%1), %%eax\n\t"
+		"lea (%%esi), %%eax\n\t"
 		"call *%2"
 	:: "r" (toolid), "r" (client_base+0x7cb70+0x3a8*player_id), "g"(client_base+0x3dd10));
 }
