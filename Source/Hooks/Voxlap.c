@@ -3,17 +3,17 @@
 #include <io.h>
 
 void drawline2d(int x1, int y1, int x2, int y2, int color) {
+	register int _y1 asm("eax") = y1;
+	register int func_addr asm("edi") = client_base+0x1ef80;
+
 	asm volatile(
-		"mov %0, %%edi\n\t"
-		"push %5\n\t"
-		"push %4\n\t" 
-		"push %3\n\t"
-		"push %1\n\t"
-		"mov %2, %%eax\n\t"
-		"add $0x1ef80, %%edi\n\t"
-		"call *%%edi\n\t"
+		"push 0x18(%%esp)\n\t" // %5
+		"push 0x18(%%esp)\n\t" // %4
+		"push 0x18(%%esp)\n\t" // %3
+		"push 0x14(%%esp)\n\t" // %1
+		"call *%0\n\t"
 		"add $0x10, %%esp"
-	:: "r" (client_base), "g" (x1), "g" (y1), "g" (x2), "g" (y2), "g" (color));
+	:: "r" (func_addr), "g" (x1), "r" (_y1), "g" (x2), "g" (y2), "g" (color));
 }
 
 //Draws a 32-bit color texture from memory to the screen. This is the
@@ -28,46 +28,49 @@ void drawline2d(int x1, int y1, int x2, int y2, int color) {
 //black,white: shade scale (ARGB format). For no effects, use (0,-1)
 //   NOTE: if alphas of black&white are same, then alpha channel ignored
 void drawtile(long tf, long tp, long tx, long ty, long tcx, long tcy, long sx, long sy, long xz, long yz, long black) {
+	register long _sx asm("eax") = sx;
+	register long _ty asm("ecx") = ty;
+
 	asm volatile(
+		"shl $0x10, %%eax\n\t"
+
 		"push %11\n\t" //black
-		"shll $0x10, %10\n\t"
-		"push %10\n\t" // zoom
-		"shll $0x10, %9\n\t"
-		"push %9\n\t" // zoom
 
-		"mov %8, %%edi\n\t" //sy
-		"shll $0x10, %%edi\n\t"
-		"push %%edi\n\t" 
-		"mov %7, %%esi\n\t" // sx
-		"shl $0x10, %%esi\n\t"
+		"shll $0x10, 0x2C(%%esp)\n\t" // %10
+		"push 0x2C(%%esp)\n\t" // zoom
 
-		"push %6\n\t" // tcy
-		"push %5\n\t" // tcx
+		"shll $0x10, 0x2C(%%esp)\n\t" // %9
+		"push 0x2C(%%esp)\n\t" // zoom
 
-		"mov %4, %%ecx\n\t" // ty
-		"push %3\n\t" // tx
+		"shll $0x10, 0x2C(%%esp)\n\t" // %8
+		"push 0x2C(%%esp)\n\t"
+
+		"push 0x28(%%esp)\n\t" // tcy %6
+		"push 0x28(%%esp)\n\t" // tcx %5
+
+		"push 0x24(%%esp)\n\t" // tx %3
 		
-		"mov %2, %%edi\n\t"
-		"shll $0x2, %%edi\n\t"
-		"push %%edi\n\t" // tp, multiply by 4, since it will always be an int
+		"shll $0x2, 0x24(%%esp)\n\t" // %2
+		"push 0x24(%%esp)\n\t" // tp, multiply by 4, since it will always be an int
 
-		"push %1\n\t" // buffer
+		"push 0x24(%%esp)\n\t" // buffer %1
 		"mov %0, %%edi\n\t"
-		"mov %%esi, %%eax\n\t"
 
 		"add $0x22390, %%edi\n\t"
 		"call *%%edi\n\t"
 		"add $0x24, %%esp\n\t"
-	:: "r" (client_base), "g" (tf), "g" (tp), "g" (tx), "g" (ty), "g" (tcx), "g" (tcy), "g" (sx), "g" (sy), "g" (xz), "g" (yz), "g" (black));
+	:: "r" (client_base), "g" (tf), "g" (tp), "g" (tx), "r" (_ty), "g" (tcx), "g" (tcy), "r" (_sx), "g" (sy), "g" (xz), "g" (yz), "g" (black));
 }
 
 void playsound2d(char *filnam, long volperc) {
+	register long _volperc asm("edi") = volperc;
+
 	asm volatile(
 		"push %1\n\t"
-		"mov %2, %%edi\n\t"
 		"add $0x19c30, %0\n\t"
-		"call *%0"
-	:: "r" (client_base), "r" (filnam), "r" (volperc));
+		"call *%0\n\t"
+		"add $4, %%esp\n\t"
+	:: "r" (client_base), "r" (filnam), "r" (_volperc));
 }
 
 // this function actually comes from winmain.cpp
@@ -130,7 +133,7 @@ struct aoskv6data* loadkv6(char* filename) {
 // opened by the process, not by the dll... So we just rewrite
 // what that function does ;)
 void kpzload(char* filepath, long *pic, int xsiz, int ysiz) {
-	FILE* fp = fopen(filepath, "rb");
+	register FILE* fp asm("eax") = fopen(filepath, "rb");
 
 	if (!fp)
 		return;
@@ -146,8 +149,7 @@ void kpzload(char* filepath, long *pic, int xsiz, int ysiz) {
 	fread(coolbuf, len, 1, fp);
 	fclose(fp);
 
-	long loadbuf = (long)malloc(xsiz*4*ysiz);
-	*pic = loadbuf;
+	*pic = (long)malloc(xsiz*4*ysiz);
 
 	int nsize = xsiz*4;
 
@@ -159,31 +161,30 @@ void kpzload(char* filepath, long *pic, int xsiz, int ysiz) {
 		"push %2\n\t"
 		"push %1\n\t"
 		"call *%6\n\t"
-		"mov %%eax, %0"
-	: "=r" (result) : "g" (coolbuf), "g" (loadbuf), "g" (nsize), "g"(xsiz), "g"(ysiz), "r" (client_base+0x26fd0));
+		"add $0x14, %%esp\n\t"
+	: "=eax" (result) : "r" (coolbuf), "r" (*pic), "g" (nsize), "m"(xsiz), "m"(ysiz), "r" (client_base+0x26fd0));
 
 	free(coolbuf);
 
 	if (result < 0) {
-		*pic = 0;
-		free((long*)loadbuf);
+		free((long*)pic);
 	}
 }
 
 // returns 0 if hidden or air
 // or returns memory address for cube
 long getcube(long x, long y, long z) {
+	register long _x asm("ecx") = x;
+	register long _y asm("eax") = y;
+	register int func_addr asm("edi") = client_base+0x1be20;
+
 	long ret = 0;
 
 	asm volatile(
-		"mov %4, %%edi\n\t"
-		"mov %1, %%ecx\n\t"
-		"mov %2, %%eax\n\t"
 		"push %3\n\t"
 		"call *%%edi\n\t"
-		"mov %%eax, %0\n\t"
 		"add $0x4, %%esp"
-		: "=r" (ret) : "g" (x), "g" (y), "g" (z), "r" (client_base+0x1be20));
+		: "=eax" (ret) : "r" (_x), "r" (_y), "g" (z), "r" (func_addr));
 
 	return ret;
 }

@@ -15,72 +15,59 @@ void set_max_fps(int fps) {
 }
 
 void voxlap_draw_text(int x, int y, int color, char* msg) {
+	register int _color asm("edi") = color;
+	register int _x asm("ecx") = x;
+
 	asm volatile(
 		"push %1\n\t"
 		"push %2\n\t"
-		"mov %3, %%edi\n\t"
-		"mov %4, %%ecx\n\t"
 
 		"call *%0\n\t"
 		"add $8, %%esp"
-		:: "r" (client_base+0x20290), "r"(msg), "r"(y), "r"(color),  "r" (x)
+		:: "r" (client_base+0x20290), "r"(msg), "r"(y), "r"(_color), "r"(_x)
 	);
 }
 
-int get_custom_font_size(int font_id, char *msg) {
-	font_id = font_id*4;
-	int len;
+__declspec(noinline) int get_custom_font_size(int font_id, char *msg) {
+	register int font asm("ecx") = *(int*)((font_id*4)+client_base+0x85cf0);
+	register char* _msg asm("esi") = msg;
+	register int func_addr asm("eax") = client_base+0x3c3d0;
+
+	int len = 0;
 
 	asm volatile(
-		"mov %1, %%edi\n\t"
-		"mov %2, %%esi\n\t"
-
-		"mov $0x85cf0, %%ecx\n\t"
-		"add %3, %%ecx\n\t"
-		"add %%edi, %%ecx\n\t" // font
-		"mov (%%ecx), %%ecx\n\t"
-
-		"mov $0x3c3d0, %%eax\n\t"
-		"add %%edi, %%eax\n\t"
-		"call *%%eax\n\t" // getTextLength
-		"mov %%eax, %0\n\t"
-	:"=r" (len) : "r" (client_base), "r" (msg),"g" (font_id));
+		"call *%1\n\t" // getTextLength
+	:"=eax" (len) : "r" (func_addr), "r"(_msg), "r"(font));
 
 	return len;
 }
 
-void draw_custom_font_text(int x, int y, int color, int font_id, char *msg) {
-	font_id = font_id*4;
+__declspec(noinline) void draw_custom_font_text(int x, int y, int color, int font_id, char *msg) {
+	int font_struct = *((int*)(client_base+0x86aa0));
 
-	asm volatile(
-		"mov %5, %%esi\n\t" // msg
-		"mov %0, %%edi\n\t" // client_base
+	register int font asm("ecx") = *((int*)(font_id*4+client_base+0x85cf0));
+	*((int*)(font_struct+4)) = font;
 
-		"mov $0x85cf0, %%ecx\n\t"
-		"add %4, %%ecx\n\t"
-		"add %%edi, %%ecx\n\t" // font
-		"mov (%%ecx), %%ecx\n\t"
+	register int _color asm("eax") = color;
 
-		"mov $0x86aa0, %%eax\n\t" // font pointer
-		"add %%edi, %%eax\n\t"
-		"mov (%%eax), %%eax\n\t"
-		"movl %%ecx, 4(%%eax)\n\t" // set font pointer
-		"mov %3, %%eax\n\t" // color
-		"mov $0x3c460, %%ebx\n\t"
-		"add %%edi, %%ebx\n\t"
-		"call *%%ebx\n\t" // setTextColor
+	register int settextcolor_func_addr asm("ebx") = client_base+0x3c460;
 
-		"push %%esi\n\t" // text
-		"push %2\n\t" // y
-		"push %1\n\t" // x
-		"push 0x84aa8(%%edi)\n\t"//"push $40\n\t" // idk
+	asm volatile ("call *%0"::"r"(settextcolor_func_addr), "r"(_color), "r"(font));
 
-		"mov 0x86aa0(%%edi), %%edx\n\t" // font pointer
-		"push %%edx\n\t" // fontpointer
-		"mov $0x3c2b0, %%eax\n\t"
-		"add %%edi, %%eax\n\t"
-		"call *%%eax"
-	:: "r" (client_base), "g" (x), "g" (y), "g" (color), "g" (font_id), "r" (msg));
+	register char* _msg asm("esi") = msg;
+	register int _x asm("edx")	= x;
+	register int _y asm("edi")	= y;
+
+	register int func_addr asm("ebx") = client_base+0x3c2b0;
+
+	asm volatile (
+		"push %1\n\t" // text
+		"push %3\n\t" // y
+		"push %2\n\t" // x
+		"push 0x84aa8(%0)\n\t"//"push $40\n\t" // idk
+		"push %4\n\t" // fontpointer
+		"call *%5"
+	:: "r" (client_base), "r" (_msg), "r" (_x), "r" (_y), "r" (font_struct), "r" (func_addr));
 }
 
 // colors in argb
@@ -121,10 +108,10 @@ void render_custom_messages() {
 
 		if (current_timestamp - c_msg.timestamp < 10) {
 			struct WindowSize wind = get_config_window_size();
-			int x;
-			int y;
-			int color;
-			int fontid;
+			int x = 0;
+			int y = 0;
+			int color = 0;
+			int fontid = 0;
 
 			printf("%i\n", i+3);
 			switch(i+3) {
@@ -226,7 +213,7 @@ __declspec(naked) void rendering_hook_bi() {
 	render_chat_shadow();
 
 	render_stats();
-	//drawProgressBar(0.8, 0xff454545, 0xffffff33);
+	//draw_progress_bar(0.8, 0xff454545, 0xffffff33);
 
 	asm volatile("popa");
 	asm volatile (

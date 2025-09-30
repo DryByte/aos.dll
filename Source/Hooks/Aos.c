@@ -17,25 +17,27 @@ void load_world_objects() {
 }
 
 __declspec(noinline) void load_player_team_skin(int player_id) {
-	int teamid = *(int*)(client_base+0x7ce58+0x3a8*player_id);
+	register int teamid asm("ecx") = *(int*)(client_base+0x7ce58+0x3a8*player_id);
+	register int player_struct asm("esi") = client_base+0x7cb70+0x3a8*player_id;
+	register int function_addr asm("edx") = client_base+0x3dc50;
 
 	asm volatile(
-		"mov %1, %%esi\n\t"
-		"mov %0, %%ecx\n\t"
 		"lea (%%esi), %%eax\n\t"
-		"call *%2"
-	:: "g" (teamid), "r" (client_base+0x7cb70+0x3a8*player_id), "g"(client_base+0x3dc50));
+		"call *%%edx"
+	:: "r" (teamid), "r" (player_struct), "r"(function_addr));
 }
 
 __declspec(noinline) void load_player_weapon_skin(int player_id) {
-	int toolid = *(int*)(client_base+0x7ce88+0x3a8*player_id);
+	register int toolid asm("eax") = *(int*)(client_base+0x7ce88+0x3a8*player_id);
+	register int player_struct asm("esi") = client_base+0x7cb70+0x3a8*player_id;
+	register int function_addr asm("edx") = client_base+0x3dd10;
 
 	asm volatile(
-		"mov %1, %%esi\n\t"
-		"push %0\n\t"
+		"push %%eax\n\t"
 		"lea (%%esi), %%eax\n\t"
-		"call *%2"
-	:: "r" (toolid), "r" (client_base+0x7cb70+0x3a8*player_id), "g"(client_base+0x3dd10));
+		"call *%%edx\n\t"
+		"pop %%eax"
+	:: "r" (toolid), "r" (player_struct), "r" (function_addr));
 }
 
 // this function not really exists
@@ -103,8 +105,6 @@ void first_person_spec(int player_id) {
 		local_ori_idk++;
 		dest_ori_idk++;
 	}
-
-	asm volatile("sub $0x4, %esp");
 }
 
 // later move this stuff to mod folder
@@ -121,7 +121,7 @@ void handle_spectate_input() {
 	//	load_player_team_skin(old_spec_id);
 }
 
-void handle_spec() {
+__declspec(noinline) void handle_spec() {
 	if (spec_fps) {
 		int spec_id = *(int*)(client_base+0x13b1ce4);
 		// if we remove players torso causes crash when player shot

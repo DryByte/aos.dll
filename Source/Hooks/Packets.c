@@ -10,22 +10,21 @@ ENetPeer* peer;
 
 extern struct ItemMultitext* LoggerMultitext;
 
-void send_packet(void* packet, size_t size) {
+__declspec(noinline) void send_packet(void* packet, size_t size) {
+	register int enet_packet_create_func asm("eax") = client_base+0x3e5e0;
+	register int enet_peer_send_func asm("esi") = client_base+0x38690;
+
 	asm volatile(
-		"mov %0, %%esi\n\t"
 		"push $0x1\n\t"
+		"push %3\n\t"
 		"push %2\n\t"
-		"push %1\n\t"
-		"mov %%esi, %%eax\n\t"
-		"add $0x3e5e0, %%eax\n\t"
 		"call *%%eax\n\t"
 		"add $0xc, %%esp\n\t"
 
 		"push %%eax\n\t"
-		"add $0x38690, %%esi\n\t"
 		"call *%%esi\n\t"
 		"add $0x4, %%esp"
-	:: "r" (client_base), "r" (packet), "g" (size));
+	:: "r" (enet_packet_create_func), "r" (enet_peer_send_func), "r" (packet), "r" (size));
 }
 
 void send_msg(char *msg) {
@@ -40,21 +39,17 @@ void send_msg(char *msg) {
 	send_packet(msgp, sizeof(msgp)+strlen(msg));
 }
 
+static struct packet_ext_info static_packet_ext_info = {
+	.packet_id = 60,
+	.length = 1,
+	.packet = {
+		.ext_id = 193,
+		.version = 1
+	}
+};
+
 void send_ext_info() {
-	struct packet_ext_info* extinfop = malloc(sizeof(struct packet_ext_info));
-	extinfop->packet_id = 60;
-	extinfop->length = 1;
-
-	struct packet_extension* extC = malloc(sizeof(struct packet_extension));
-	extC->ext_id = 193;
-	extC->version = 1;
-
-	extinfop->packet = *extC;
-
-	send_packet(extinfop, sizeof(extinfop));
-
-	free(extinfop);
-	free(extC);
+	send_packet(&static_packet_ext_info, sizeof(static_packet_ext_info));
 }
 
 void send_client_info() {

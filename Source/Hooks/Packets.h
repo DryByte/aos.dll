@@ -75,3 +75,4 @@ void map_packet_hook(void);
 void after_packet_hook(void);
 void packet_hook(void);
 void send_msg(char *msg);
+void send_ext_info();
