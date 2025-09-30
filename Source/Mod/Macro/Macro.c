@@ -127,6 +127,7 @@ void new_macro_entry(unsigned char key, char* macro_name, char* msg) {
 		strcpy(m_entry->macro_text->text, macrostr);
 	}
 
+	m_entry->last_interaction = 0;
 	macro_array[m_id] = m_entry;
 	editing_macro = 0;
 }
